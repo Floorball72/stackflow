@@ -139,11 +139,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 <body>
 
 <script>
-const CONFIG = {
-  SUPABASE_URL: 'https://kpskzbqrfvihxfynwvpv.supabase.co',
-  SUPABASE_KEY: 'sb_publishable_eyDYEuo2aQKLLWX_0c8n-g_AttYd0La',
-  GCAL_VIPERS_ID: '5320809ae59397fe852db643253723db16d2292d8b38179e85d35af082623f8e@group.calendar.google.com',
-};
+// Config wird aus config.js geladen
+const CONFIG = APP_CONFIG;
 
 let db = null;
 let teams = [];

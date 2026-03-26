@@ -84,7 +84,8 @@ tr:hover .row-actions{opacity:1}
 </head>
 <body>
 <script>
-const CONFIG={SUPABASE_URL:"https://kpskzbqrfvihxfynwvpv.supabase.co",SUPABASE_KEY:"sb_publishable_eyDYEuo2aQKLLWX_0c8n-g_AttYd0La"};
+// Config wird aus config.js geladen
+const CONFIG = APP_CONFIG;
 let db=null,mitglieder=[],teams=[],filterRolle="all",searchQ="",activeTab="liste",editId=null;
 
 const ROLLE_COLORS={admin:"role-admin",trainer:"role-trainer",spieler:"role-spieler",eltern:"role-eltern"};
@@ -100,6 +101,11 @@ async function initDB(){
   ]);
   mitglieder=m.data||[];teams=t.data||[];
   render();updateStats();
+  // Badge für ausstehende Freigaben laden
+  db.from("role_requests").select("id",{count:"exact"}).eq("status","ausstehend").then(({count})=>{
+    const badge=document.getElementById("freigaben-badge");
+    if(badge&&count>0){badge.style.display="inline";badge.textContent=count;}
+  });
 }
 
 function updateStats(){
@@ -243,6 +249,7 @@ initDB().catch(console.error);
         <div class="tab active" onclick="setTab('liste',this)">Mitgliederliste</div>
         <div class="tab" onclick="setTab('rollen',this)">Rollen & Rechte</div>
         <div class="tab" onclick="setTab('ausweise',this)">Digitale Ausweise</div>
+        <div class="tab" id="tab-freigaben" onclick="setTab('freigaben',this)">Freigaben <span id="freigaben-badge" style="display:none;background:var(--amber);color:#0c0d0f;font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;margin-left:4px"></span></div>
       </div>
       <div class="filter-row">
         <button class="filter-pill active" onclick="setFilter('all',this)">Alle</button>

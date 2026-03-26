@@ -84,7 +84,8 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
 </head>
 <body>
 <script>
-const CONFIG={SUPABASE_URL:"https://kpskzbqrfvihxfynwvpv.supabase.co",SUPABASE_KEY:"sb_publishable_eyDYEuo2aQKLLWX_0c8n-g_AttYd0La"};
+// Config wird aus config.js geladen
+const CONFIG = APP_CONFIG;
 const MONATE=["Jan","Feb","Mar","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov","Dez"];
 const TYP_LABELS={cup:"Cup",turnier:"Turnier",gv:"Generalversammlung",event:"Event",training:"Training"};
 let db=null,events=[],editId=null;

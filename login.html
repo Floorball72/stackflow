@@ -83,10 +83,8 @@ select.form-input option{background:var(--bg3)}
 </head>
 <body>
 <script>
-const CONFIG = {
-  SUPABASE_URL: 'https://kpskzbqrfvihxfynwvpv.supabase.co',
-  SUPABASE_KEY: 'sb_publishable_eyDYEuo2aQKLLWX_0c8n-g_AttYd0La',
-};
+// Config wird aus config.js geladen
+const CONFIG = APP_CONFIG;
 let db = null, auth = null;
 let registerStep = 1;
 let selectedRolle = 'spieler';
@@ -188,6 +186,7 @@ function nextStep(from) {
     if (selectedRolle === 'spieler') {
       setRegisterStep(3);
     } else {
+      // Eltern: direkt Account erstellen
       doRegister();
     }
   }
@@ -235,6 +234,12 @@ function selectPlayer(id, name) {
 }
 
 // Account erstellen
+function skipPlayerLink() {
+  selectedPlayerId = null;
+  document.getElementById('r-player-search').value = '';
+  doRegister();
+}
+
 async function doRegister() {
   const email = document.getElementById('r-email').value.trim();
   const pass = document.getElementById('r-pass').value;
@@ -267,10 +272,11 @@ async function doRegister() {
       email,
       rolle: selectedRolle,
       aktiv: true,
+      freigegeben: true,  // Spieler + Eltern sind direkt aktiv
       mitglied_seit: new Date().toISOString().split('T')[0],
     }]);
 
-    // 3. Spieler verknüpfen (wenn Spieler-Rolle und Profil gewählt)
+    // 3. Spieler verknüpfen — Pflicht für Spieler-Rolle
     if (selectedRolle === 'spieler' && selectedPlayerId) {
       await db.from('players').update({ user_id: userId }).eq('id', selectedPlayerId);
     }
@@ -290,6 +296,30 @@ async function doRegister() {
       btn.disabled = true;
     }
   }, 1500);
+}
+
+// Trainer/Admin Request
+function showTrainerRequest() {
+  document.getElementById('panel-request').style.display = 'block';
+  document.getElementById('panel-request').scrollIntoView({behavior:'smooth'});
+}
+function hideRequest() {
+  document.getElementById('panel-request').style.display = 'none';
+}
+async function submitRequest() {
+  const vn = document.getElementById('req-vn').value.trim();
+  const nn = document.getElementById('req-nn').value.trim();
+  const email = document.getElementById('req-email').value.trim();
+  const rolle = document.getElementById('req-rolle').value;
+  if (!vn || !nn || !email) { showAlert('req-alert','error','Bitte alle Pflichtfelder ausfüllen.'); return; }
+  const { error } = await db.from('role_requests').insert([{
+    vorname: vn, nachname: nn, email, gewuenschte_rolle: rolle,
+    begruendung: document.getElementById('req-begruendung').value || null,
+    status: 'ausstehend'
+  }]);
+  if (error) { showAlert('req-alert','error','Fehler beim Senden: ' + error.message); return; }
+  showAlert('req-alert','success','Anfrage gesendet! Der Vereinsadmin wird dich kontaktieren.');
+  setTimeout(() => { document.getElementById('panel-request').style.display = 'none'; }, 3000);
 }
 
 // Enter-Taste
@@ -368,24 +398,15 @@ init().catch(console.error);
             <div class="role-card-label">Spieler</div>
             <div class="role-card-sub">Aktives Mitglied</div>
           </div>
-          <div class="role-card" id="role-trainer" onclick="selectRolle('trainer')">
-            <div class="role-card-icon">📋</div>
-            <div class="role-card-label">Trainer</div>
-            <div class="role-card-sub">Trainingsleitung</div>
-          </div>
           <div class="role-card" id="role-eltern" onclick="selectRolle('eltern')">
             <div class="role-card-icon">👨‍👩‍👧</div>
             <div class="role-card-label">Elternteil</div>
             <div class="role-card-sub">Junioren-Eltern</div>
           </div>
-          <div class="role-card" id="role-admin" onclick="selectRolle('admin')">
-            <div class="role-card-icon">⚙️</div>
-            <div class="role-card-label">Vereinsadmin</div>
-            <div class="role-card-sub">Vorstand / Admin</div>
-          </div>
         </div>
-        <div style="background:rgba(255,190,71,.08);border:1px solid rgba(255,190,71,.2);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--amber);margin-bottom:16px">
-          Admin und Trainer-Accounts werden vom Vereinsvorstand freigegeben.
+        <div style="background:rgba(91,191,255,.08);border:1px solid rgba(91,191,255,.2);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--blue);margin-bottom:16px;line-height:1.6">
+          Trainer- und Admin-Zugänge werden vom Vereinsvorstand freigegeben.
+          <a href="#" onclick="showTrainerRequest()" style="color:var(--accent);font-weight:500;display:block;margin-top:4px">→ Trainer- oder Admin-Zugang anfragen</a>
         </div>
         <button class="btn-submit" onclick="nextStep(1)">Weiter →</button>
       </div>
@@ -444,10 +465,41 @@ init().catch(console.error);
           <button class="btn-submit" id="r-btn" onclick="doRegister()">Account erstellen</button>
         </div>
         <div style="text-align:center;margin-top:12px">
-          <a href="#" onclick="doRegister()" style="font-size:12px;color:var(--text3)">Ohne Verknüpfung fortfahren →</a>
+          <a href="#" onclick="skipPlayerLink()" style="font-size:12px;color:var(--text3)">Ich bin noch nicht in der Datenbank → überspringen</a>
         </div>
       </div>
 
+    </div>
+  </div>
+
+  <!-- Trainer/Admin Anfrage Panel -->
+  <div id="panel-request" style="display:none;margin-top:12px">
+    <div class="card">
+      <div style="margin-bottom:20px">
+        <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;margin-bottom:4px">Trainer / Admin Zugang anfragen</div>
+        <div style="font-size:13px;color:var(--text3)">Deine Anfrage wird dem Vereinsvorstand zur Freigabe gesendet.</div>
+      </div>
+      <div class="alert" id="req-alert"></div>
+      <div class="form-group">
+        <label class="form-label">Gewünschte Rolle</label>
+        <select class="form-input" id="req-rolle">
+          <option value="trainer">Trainer</option>
+          <option value="admin">Vereinsadmin / Vorstand</option>
+        </select>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="form-group"><label class="form-label">Vorname</label><input class="form-input" type="text" id="req-vn"></div>
+        <div class="form-group"><label class="form-label">Nachname</label><input class="form-input" type="text" id="req-nn"></div>
+      </div>
+      <div class="form-group"><label class="form-label">E-Mail</label><input class="form-input" type="email" id="req-email"></div>
+      <div class="form-group">
+        <label class="form-label">Begründung (optional)</label>
+        <textarea class="form-input" id="req-begruendung" rows="2" placeholder="z.B. Ich trainiere die Junioren U15..."></textarea>
+      </div>
+      <button class="btn-submit" onclick="submitRequest()">Anfrage senden</button>
+      <div style="text-align:center;margin-top:12px">
+        <a href="#" onclick="hideRequest()" style="font-size:12px;color:var(--text3)">← Zurück zur Registrierung</a>
+      </div>
     </div>
   </div>
 

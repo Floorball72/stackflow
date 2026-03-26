@@ -60,7 +60,8 @@ tr:hover td{background:rgba(255,255,255,.02);cursor:pointer}
 </head>
 <body>
 <script>
-const CONFIG={SUPABASE_URL:'https://kpskzbqrfvihxfynwvpv.supabase.co',SUPABASE_KEY:'sb_publishable_eyDYEuo2aQKLLWX_0c8n-g_AttYd0La'};
+// Config wird aus config.js geladen
+const CONFIG = APP_CONFIG;
 let db=null,team=null,games=[],scorer=[],players=[];
 const params=new URLSearchParams(location.search);
 const teamId=params.get('id');

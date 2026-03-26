@@ -75,7 +75,8 @@ tr:hover .row-actions{opacity:1}
 </head>
 <body>
 <script>
-const CONFIG={SUPABASE_URL:'https://kpskzbqrfvihxfynwvpv.supabase.co',SUPABASE_KEY:'sb_publishable_eyDYEuo2aQKLLWX_0c8n-g_AttYd0La'};
+// Config wird aus config.js geladen
+const CONFIG = APP_CONFIG;
 let db=null,scorer=[],teams=[],players=[],games=[],activeTeam='all';
 
 async function initDB(){

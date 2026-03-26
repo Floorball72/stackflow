@@ -86,16 +86,19 @@ function renderNav(activeId) {
     <div style="padding:0 8px 12px">
       ${user ? `
       <div style="background:var(--bg3);border-radius:8px;border:1px solid var(--border);padding:10px 12px;margin-bottom:8px">
-        <div style="display:flex;align-items:center;gap:8px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
           <div style="width:28px;height:28px;border-radius:50%;background:${roleColors[rolle]}22;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:${roleColors[rolle]};flex-shrink:0">${(user.vorname||'?')[0]}${(user.nachname||'?')[0]}</div>
           <div style="flex:1;min-width:0">
             <div style="font-size:12px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${user.vorname} ${user.nachname}</div>
             <div style="font-size:10px;color:${roleColors[rolle]};font-weight:600;text-transform:uppercase;letter-spacing:.06em">${roleLabels[rolle]}</div>
           </div>
         </div>
-        <button onclick="logout()" style="width:100%;margin-top:8px;background:transparent;border:1px solid var(--border2);border-radius:6px;padding:5px;font-size:11px;color:var(--text3);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .12s" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text3)'">Abmelden</button>
+        <div style="display:flex;gap:5px">
+          <button onclick="openProfil()" style="flex:1;background:rgba(212,240,74,.08);border:1px solid rgba(212,240,74,.2);border-radius:6px;padding:5px;font-size:11px;color:var(--accent);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .12s" onmouseover="this.style.background='rgba(212,240,74,.15)'" onmouseout="this.style.background='rgba(212,240,74,.08)'">Profil</button>
+          <button onclick="logout()" style="flex:1;background:transparent;border:1px solid var(--border2);border-radius:6px;padding:5px;font-size:11px;color:var(--text3);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .12s" onmouseover="this.style.color='var(--red)';this.style.borderColor='rgba(255,107,107,.3)'" onmouseout="this.style.color='var(--text3)';this.style.borderColor='var(--border2)'">Abmelden</button>
+        </div>
       </div>` : `
-      <a href="login.html" style="display:block;text-align:center;background:rgba(212,240,74,.1);border:1px solid rgba(212,240,74,.3);border-radius:8px;padding:9px;font-size:12px;color:var(--accent);font-weight:500;text-decoration:none;transition:all .12s">Anmelden</a>`}
+      <a href="login.html" style="display:block;text-align:center;background:rgba(212,240,74,.1);border:1px solid rgba(212,240,74,.3);border-radius:8px;padding:9px;font-size:12px;color:var(--accent);font-weight:500;text-decoration:none;margin-bottom:8px;transition:all .12s">Anmelden</a>`}
       <div style="background:var(--bg3);border-radius:8px;border:1px solid var(--border);padding:8px 12px">
         <div style="display:flex;align-items:center;margin-bottom:4px">
           <span style="width:6px;height:6px;border-radius:50%;background:var(--green);margin-right:6px;box-shadow:0 0 6px var(--green)"></span>
@@ -115,14 +118,47 @@ function renderNav(activeId) {
 
   document.getElementById('nav-placeholder').outerHTML = html;
 
-  // Redirect zu Login wenn nicht eingeloggt (ausser Login-Seite)
-  if (!user && !window.location.pathname.includes('login.html')) {
-    // Soft redirect – nur warnen, nicht hard redirect (für Dev-Modus)
-    console.info('Nicht eingeloggt – in Produktion: redirect zu login.html');
+  // Hard-Redirect zu Login wenn nicht eingeloggt
+  const currentPage = window.location.pathname.split('/').pop() || 'dashboard.html';
+  const publicPages = ['login.html', 'profil.html'];
+  if (!user && !publicPages.includes(currentPage)) {
+    window.location.replace('login.html');
+    return;
+  }
+  // Eingeloggt auf Login-Seite -> zum Dashboard
+  if (user && currentPage === 'login.html') {
+    window.location.replace('dashboard.html');
+    return;
+  }
+  // Rechte-Check: Zugriff auf gesperrte Seiten verhindern
+  if (user) {
+    const adminOnlyPages = ['finanzen.html','sponsoring.html','mitglieder.html','inventar.html'];
+    const trainerPages = ['kamera.html','anwesenheit.html','training.html','scorer.html','spielplan.html'];
+    if (rolle === 'eltern' && adminOnlyPages.concat(trainerPages).includes(currentPage)) {
+      window.location.replace('dashboard.html');
+      return;
+    }
+    if (rolle === 'spieler' && adminOnlyPages.includes(currentPage)) {
+      window.location.replace('dashboard.html');
+      return;
+    }
+    if (rolle === 'trainer' && adminOnlyPages.includes(currentPage)) {
+      window.location.replace('dashboard.html');
+      return;
+    }
   }
 }
 
 function logout() {
   localStorage.removeItem('vipers_user');
+  // Supabase Session beenden
+  import('https://esm.sh/@supabase/supabase-js@2').then(mod => {
+    const db = mod.createClient('https://kpskzbqrfvihxfynwvpv.supabase.co', '''');
+    db.auth.signOut();
+  });
   window.location.href = 'login.html';
+}
+
+function openProfil() {
+  window.location.href = 'profil.html';
 }
