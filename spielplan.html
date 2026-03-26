@@ -15,7 +15,8 @@
     --r:10px;--r-lg:16px;
   }
   *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+  a{text-decoration:none}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
   .shell{display:flex;min-height:100vh}
 
   /* Sidebar */
@@ -321,7 +322,7 @@ function renderTeams() {
       </div>
       <div class="team-card-footer">
         <button class="btn btn-ghost" style="flex:1;justify-content:center;font-size:12px;padding:6px 10px" onclick="showPlayers('${t.id}','${t.name}')">Spielerliste</button>
-        <button class="btn btn-ghost" style="flex:1;justify-content:center;font-size:12px;padding:6px 10px" onclick="filterByTeam('${t.id}')">Spielplan</button>
+        <button class="btn btn-ghost" style="flex:1;justify-content:center;font-size:12px;padding:6px 10px" onclick="location.href='team-stats.html?id=${t.id}'">Statistiken →</button>
       </div>
     </div>`;
   });

@@ -13,7 +13,8 @@ const NAV_ITEMS = [
   { label: 'Events',           href: 'events.html',     icon: '<rect x="2" y="2" width="12" height="12" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M5 8H11M5 5.5H11M5 10.5H8.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>', id: 'events' },
   { label: 'Finanzen',         href: 'finanzen.html',   icon: '<path d="M2 12V4l6-2 6 2v8l-6 2-6-2Z" stroke="currentColor" stroke-width="1.3"/><path d="M8 6v4M6 8h4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>', id: 'finanzen' },
   { label: 'Training',         href: 'training.html',   icon: '<circle cx="8" cy="5" r="2.5" stroke="currentColor" stroke-width="1.3"/><path d="M3 14c0-2.76 2.24-5 5-5s5 2.24 5 5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>', id: 'training' },
-  { label: 'Videoanalyse',     href: 'video.html',      icon: '<rect x="2" y="3" width="12" height="9" rx="1" stroke="currentColor" stroke-width="1.3"/><path d="M7 6.5L10.5 8.5L7 10.5V6.5Z" fill="currentColor"/>', id: 'video' },
+  { label: 'Video & Training',  href: 'training.html',   icon: '<rect x="2" y="3" width="12" height="9" rx="1" stroke="currentColor" stroke-width="1.3"/><path d="M7 6.5L10.5 8.5L7 10.5V6.5Z" fill="currentColor"/>', id: 'video' },
+  { label: 'Kameraplanung',      href: 'kamera.html',     icon: '<circle cx="12" cy="8" r="3" stroke="currentColor" stroke-width="1.3"/><path d="M2 6h7l2-2h2l2 2v6l-2 2h-2l-2-2H2V6Z" stroke="currentColor" stroke-width="1.3"/>', id: 'kamera' },
 ];
 
 function renderNav(activeId) {

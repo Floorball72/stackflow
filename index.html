@@ -217,6 +217,7 @@
           <svg width="11" height="11" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.3"/><path d="M8 5v3l2 2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
           Swiss UH API ausstehend
         </span>
+        <button class="btn btn-ghost" style="font-size:12px" onclick="document.getElementById('manualPostModal').classList.add('open')">+ Manueller Post</button>
         <button class="btn btn-ghost" onclick="document.getElementById('newGameModal').classList.add('open')">
           <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
           Spiel erfassen
@@ -622,6 +623,86 @@
   // Start: DB verbinden und Daten laden
   initDB();
 </script>
+
+<!-- Modal: Post Detail -->
+<div class="overlay" id="postDetailModal">
+  <div class="modal" style="max-width:560px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div style="font-family:'Syne',sans-serif;font-size:17px;font-weight:700" id="pd-title">Post Detail</div>
+      <button class="btn btn-ghost" style="padding:6px 12px;font-size:12px" onclick="document.getElementById('postDetailModal').classList.remove('open')">Schliessen</button>
+    </div>
+    <div id="pd-content"></div>
+  </div>
+</div>
+
+<!-- Modal: Manueller Post -->
+<div class="overlay" id="manualPostModal">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-title">Manuellen Post erfassen</div>
+    <div class="form-grid">
+      <div><label class="form-label">Titel</label><input class="form-input" type="text" id="mp-titel" placeholder="z.B. Saisonstart-Ankundigung"></div>
+      <div class="form-row-2">
+        <div><label class="form-label">Typ</label>
+          <select class="form-input" id="mp-typ">
+            <option value="vorschau">Spielvorschau</option><option value="resultat">Resultat</option>
+            <option value="event">Event</option><option value="info">Info / Sonstiges</option>
+          </select>
+        </div>
+        <div><label class="form-label">Geplant fuer</label><input class="form-input" type="datetime-local" id="mp-datum"></div>
+      </div>
+      <div><label class="form-label">Canva Link</label><input class="form-input" type="url" id="mp-canva" placeholder="https://canva.com/design/..."></div>
+      <div><label class="form-label">Text Entwurf</label><textarea class="form-input" id="mp-text" rows="3" placeholder="Post-Text..."></textarea></div>
+      <div><label class="form-label">Plattformen</label>
+        <div style="display:flex;gap:14px;margin-top:6px">
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;color:var(--text2)"><input type="checkbox" id="mp-ig" checked> Instagram</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;color:var(--text2)"><input type="checkbox" id="mp-fb" checked> Facebook</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;color:var(--text2)"><input type="checkbox" id="mp-tt"> TikTok</label>
+        </div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="document.getElementById('manualPostModal').classList.remove('open')">Abbrechen</button>
+      <button class="btn btn-accent" onclick="saveManualPost()">Post speichern</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function openPostDetail(post){
+  document.getElementById("pd-title").textContent = post.name || "Post Detail";
+  const typeLabel = post.type === "vorschau" ? "Vorschau-Post" : post.type === "resultat" ? "Resultat-Post" : "Post";
+  document.getElementById("pd-content").innerHTML = "<div style='display:grid;gap:14px'>"
+    + "<div style='background:var(--bg3);border-radius:8px;padding:14px'>"
+    + "<div style='font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px'>" + typeLabel + "</div>"
+    + "<div style='font-size:14px;font-weight:500;color:var(--text)'>" + (post.name||"") + "</div>"
+    + "<div style='font-size:12px;color:var(--text3);margin-top:4px'>" + (post.date||"") + "</div>"
+    + "</div>"
+    + "<div style='display:grid;grid-template-columns:1fr 1fr;gap:10px'>"
+    + "<div style='background:var(--bg3);border-radius:8px;padding:12px'><div style='font-size:11px;color:var(--text3);margin-bottom:4px'>Plattformen</div><div style='font-size:13px;color:var(--text)'>Instagram &middot; Facebook &middot; TikTok</div></div>"
+    + "<div style='background:var(--bg3);border-radius:8px;padding:12px'><div style='font-size:11px;color:var(--text3);margin-bottom:4px'>Status</div><div style='font-size:13px;color:var(--amber)'>" + (post.status === "warning" ? "Resultat fehlt" : "Offen") + "</div></div>"
+    + "</div>"
+    + "<div style='background:rgba(91,191,255,.08);border:1px solid rgba(91,191,255,.2);border-radius:8px;padding:12px;font-size:12px;color:var(--blue)'>Canva Design oeffnen, Inhalt aktualisieren und auf allen Kanaelen posten.</div>"
+    + "<div style='display:flex;gap:8px;justify-content:flex-end'>"
+    + "<button class='btn btn-ghost' style='font-size:12px' onclick='document.getElementById("postDetailModal").classList.remove("open")'>Schliessen</button>"
+    + "<button class='btn btn-accent' style='font-size:12px' id='pd-done-btn' onclick='markPostedDetail(this)'>Als gepostet markieren</button>"
+    + "</div></div>";
+  document.getElementById("postDetailModal").classList.add("open");
+}
+function markPostedDetail(btn){btn.textContent="Erledigt";btn.disabled=true;btn.style.opacity=".5";}
+async function saveManualPost(){
+  const titel=document.getElementById("mp-titel").value;
+  const datum=document.getElementById("mp-datum").value;
+  if(!titel||!datum){alert("Bitte Titel und Datum eingeben.");return;}
+  const plattformen=[];
+  if(document.getElementById("mp-ig").checked)plattformen.push("instagram");
+  if(document.getElementById("mp-fb").checked)plattformen.push("facebook");
+  if(document.getElementById("mp-tt").checked)plattformen.push("tiktok");
+  try{if(db){await db.from("social_posts").insert([{typ:document.getElementById("mp-typ").value,woche_datum:datum.split("T")[0],geplant_fuer:new Date(datum).toISOString(),status:"geplant",canva_link:document.getElementById("mp-canva").value||null,text_entwurf:document.getElementById("mp-text").value||null,plattformen}]);}}catch(e){console.warn(e);}
+  document.getElementById("manualPostModal").classList.remove("open");
+  alert("Post '"+titel+"' wurde gespeichert!");
+}
+</script>
+
 <script src="nav.js"></script>
 <script>renderNav('social');</script>
 </body>
