@@ -88,7 +88,7 @@ async function initDB(){
   const[t,p,g,e,a]=await Promise.all([
     db.from('teams').select("*").eq('club_id',CLUB_ID).eq("aktiv",true).order("name"),
     db.from('players').select("*").eq('club_id',CLUB_ID).eq("aktiv",true).order("nachname"),
-    db.from('games').select("*,teams(name).eq('club_id',CLUB_ID)").order("datum",{ascending:false}).limit(30),
+    db.from('games').select("*,teams(name)").eq("club_id",CLUB_ID).order("datum",{ascending:false}).limit(30),
     db.from('events').select("*").eq('club_id',CLUB_ID).order("datum",{ascending:false}).limit(20),
     db.from('anwesenheit').select("*").eq('club_id',CLUB_ID).order("created_at",{ascending:false}),
   ]);
@@ -192,7 +192,7 @@ async function toggleAtt(playerId,key,currentStatus){
   const order=["offen","anwesend","abwesend","entschuldigt"];
   const next=order[(order.indexOf(currentStatus)+1)%order.length];
   const datum=getContextDatum();
-  let insertData={player_id:playerId,team_id:selTeam,typ:selTyp,status:next};
+  let insertData={club_id:CLUB_ID,player_id:playerId,team_id:selTeam,typ:selTyp,status:next};
   if(selTyp==="spiel")insertData.game_id=key;
   else if(selTyp==="event")insertData.event_id=key;
   else insertData.training_datum=key;
@@ -252,7 +252,7 @@ async function myToggle(itemId,typ,newStatus,teamId){
   const myPlayerId=players.find(p=>p.user_id===currentUser?.id)?.id;
   if(!myPlayerId)return;
   const existing=anwesenheit.find(a=>a.player_id===myPlayerId&&(typ==="spiel"?a.game_id===itemId:a.event_id===itemId));
-  const insertData={player_id:myPlayerId,typ,status:newStatus,team_id:teamId||null};
+  const insertData={club_id:CLUB_ID,player_id:myPlayerId,typ,status:newStatus,team_id:teamId||null};
   if(typ==="spiel")insertData.game_id=itemId;else insertData.event_id=itemId;
   if(existing){
     const ns=existing.status===newStatus?"offen":newStatus;

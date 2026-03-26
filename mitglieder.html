@@ -98,16 +98,15 @@ async function initDB(){
   db=mod.createClient(CONFIG.SUPABASE_URL,CONFIG.SUPABASE_ANON_KEY);
   CLUB_ID=APP_CONFIG.ACTIVE_CLUB.club_id;
   const[m,t]=await Promise.all([
-    db.from("user_profiles").select("*").order("nachname"),
+    db.from("user_profiles").select("*").eq("club_id",CLUB_ID).order("nachname"),
     db.from('teams').select("*").eq('club_id',CLUB_ID).eq("aktiv",true),
   ]);
   mitglieder=m.data||[];teams=t.data||[];
   render();updateStats();
-  // Badge für ausstehende Freigaben laden
-  db.from("role_requests").select("id",{count:"exact"}).eq("status","ausstehend").then(({count})=>{
-    const badge=document.getElementById("freigaben-badge");
-    if(badge&&count>0){badge.style.display="inline";badge.textContent=count;}
-  });
+  // Freigaben-Badge aus geladenen Mitgliedern berechnen
+  const _ausstehend=(m.data||[]).filter(x=>x.login_status==="pending"||x.login_status==="invited").length;
+  const _badge=document.getElementById("freigaben-badge");
+  if(_badge){_badge.style.display=_ausstehend>0?"inline":"none";if(_ausstehend>0)_badge.textContent=_ausstehend;}
 }
 
 function updateStats(){
@@ -407,7 +406,7 @@ async function saveMitglied(){
     // Wenn die Person sich registriert (Login-Seite), wird die UUID durch die echte Auth-ID ersetzt,
     // weil beim Register nach matching email gesucht wird.
     const profileId=crypto.randomUUID();
-    await db.from("user_profiles").insert([{id:profileId,...profileData}]);
+    await db.from("user_profiles").insert([{id:profileId,club_id:CLUB_ID,...profileData}]);
     // Spieler-Eintrag anlegen
     if(trikotData){
       await db.from("players").insert([{

@@ -90,9 +90,9 @@ async function initDB(){
 async function loadAll(){
   const[t,s,p,g]=await Promise.all([
     db.from('teams').select('*').eq('club_id',CLUB_ID).eq('aktiv',true).order('name'),
-    db.from('scorer').select('*, players(vorname,nachname,nummer,team_id).eq('club_id',CLUB_ID), games(datum,gegner,teams(name))').order('tore',{ascending:false}),
+    db.from('scorer').select('*, players(vorname,nachname,nummer,team_id), games(datum,gegner,teams(name))').eq('club_id',CLUB_ID).order('tore',{ascending:false}),
     db.from('players').select('*').eq('club_id',CLUB_ID).eq('aktiv',true).order('nachname'),
-    db.from('games').select('*,teams(name).eq('club_id',CLUB_ID)').order('datum',{ascending:false}),
+    db.from('games').select('*,teams(name)').eq('club_id',CLUB_ID).order('datum',{ascending:false}),
   ]);
   teams=t.data||[];players=p.data||[];scorer=s.data||[];games=g.data||[];
   buildTeamPills();
@@ -203,9 +203,9 @@ function openAddScorer(){
 async function saveScorer(){
   const pid=document.getElementById('sf-player').value;
   const gid=document.getElementById('sf-game').value;
-  if(!pid||!gid){alert('Spieler und Spiel wählen.');return;}
+  if(!pid){alert('Bitte Spieler wählen.');return;}
   const data={
-    player_id:pid,game_id:gid,
+    club_id:CLUB_ID,player_id:pid,game_id:gid||null,
     tore:parseInt(document.getElementById('sf-tore').value)||0,
     assists:parseInt(document.getElementById('sf-assists').value)||0,
     strafminuten:parseInt(document.getElementById('sf-strafmin').value)||0,
@@ -264,7 +264,7 @@ initDB().catch(e=>{console.error(e);});
     <div class="modal-title">Statistik eintragen</div>
     <div class="form-grid">
       <div><label class="form-label">Spieler</label><select class="form-input" id="sf-player"></select></div>
-      <div><label class="form-label">Spiel</label><select class="form-input" id="sf-game"></select></div>
+      <div><label class="form-label">Spiel (optional)</label><select class="form-input" id="sf-game"></select></div>
       <div class="form-row-4">
         <div><label class="form-label">Tore</label><input class="form-input" type="number" id="sf-tore" min="0" value="0" style="text-align:center;font-size:20px;padding:10px"></div>
         <div><label class="form-label">Assists</label><input class="form-input" type="number" id="sf-assists" min="0" value="0" style="text-align:center;font-size:20px;padding:10px"></div>

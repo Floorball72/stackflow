@@ -163,7 +163,7 @@ async function loadAll() {
   showLoading();
   const [t, g] = await Promise.all([
     db.from('teams').select('*').eq('club_id',CLUB_ID).eq('aktiv', true).order('name'),
-    db.from('games').select('*, teams(name,liga).eq('club_id',CLUB_ID)').order('datum').order('anstoss')
+    db.from('games').select('*, teams(name,liga)').eq('club_id',CLUB_ID).order('datum').order('anstoss')
   ]);
   teams = t.data || [];
   games = g.data || [];
@@ -184,7 +184,6 @@ function showLoading() {
 
 function render() {
   if (activeTab === 'spielplan') renderSpielplan();
-  else if (activeTab === 'teams') renderTeams();
 }
 
 function renderSpielplan() {
@@ -212,7 +211,7 @@ function renderSpielplan() {
         <td style="color:var(--text2);font-size:12px">${g.teams?.name || '–'}</td>
         <td><strong>${g.heimspiel ? 'vs.' : '@'} ${g.gegner}</strong></td>
         <td><span class="badge ${g.heimspiel ? 'badge-home' : 'badge-away'}">${g.heimspiel ? 'Heim' : 'Auswärts'}</span></td>
-        <td style="color:var(--text2);font-size:12px">${g.liga || '–'}</td>
+        <td style="color:var(--text2);font-size:12px">${g.spielkategorie||g.liga||'Saison'}</td>
         <td style="font-family:'DM Mono',monospace;font-size:12px">${g.anstoss?.slice(0,5) || '–'}</td>
         <td>
           <div class="row-actions">
@@ -386,7 +385,7 @@ function openNewGame() {
   document.getElementById('gf-datum').value = '';
   document.getElementById('gf-anstoss').value = '17:00';
   document.getElementById('gf-heim').value = 'true';
-  document.getElementById('gf-liga').value = '';
+  const _spkat=document.getElementById('gf-spielkategorie');if(_spkat)_spkat.value='saison';
   document.getElementById('gf-ort').value = '';
   document.getElementById('result-section').style.display = 'none';
   document.getElementById('gameModal').classList.add('open');
@@ -402,7 +401,7 @@ function openEditGame(id) {
   document.getElementById('gf-datum').value = g.datum || '';
   document.getElementById('gf-anstoss').value = g.anstoss?.slice(0,5) || '17:00';
   document.getElementById('gf-heim').value = String(g.heimspiel);
-  document.getElementById('gf-liga').value = g.liga || '';
+  const _spkat2=document.getElementById('gf-spielkategorie');if(_spkat2)_spkat2.value=g.spielkategorie||'saison';
   document.getElementById('gf-ort').value = g.ort || '';
   document.getElementById('result-section').style.display = 'grid';
   document.getElementById('gf-heim-score').value = g.resultat_heim ?? '';
@@ -460,7 +459,7 @@ async function saveGame() {
     datum: document.getElementById('gf-datum').value,
     anstoss: document.getElementById('gf-anstoss').value,
     heimspiel: document.getElementById('gf-heim').value === 'true',
-    liga: document.getElementById('gf-liga').value || null,
+    spielkategorie: (document.getElementById('gf-spielkategorie')||{value:'saison'}).value,
     ort: document.getElementById('gf-ort').value || null,
   };
   const rh = document.getElementById('gf-heim-score').value;
@@ -615,8 +614,12 @@ initDB().catch(e => {
           <input class="form-input" type="time" id="gf-anstoss" value="17:00">
         </div>
         <div>
-          <label class="form-label">Liga</label>
-          <input class="form-input" type="text" id="gf-liga" placeholder="1. Liga">
+          <label class="form-label">Kategorie</label>
+          <select class="form-input" id="gf-spielkategorie">
+            <option value="saison">Saison</option>
+            <option value="cup">Cup</option>
+            <option value="friendly">Friendly</option>
+          </select>
         </div>
       </div>
       <div>
@@ -758,7 +761,7 @@ async function loadAll() {
   showLoading();
   const [t, g] = await Promise.all([
     db.from('teams').select('*').eq('club_id',CLUB_ID).eq('aktiv', true).order('name'),
-    db.from('games').select('*, teams(name,liga).eq('club_id',CLUB_ID)').order('datum').order('anstoss')
+    db.from('games').select('*, teams(name,liga)').eq('club_id',CLUB_ID).order('datum').order('anstoss')
   ]);
   teams = t.data || [];
   games = g.data || [];

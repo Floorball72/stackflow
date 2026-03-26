@@ -117,6 +117,7 @@ create table games (
   ort           text,
   resultat_heim integer,
   resultat_gast integer,
+  spielkategorie text default 'saison' check (spielkategorie in ('saison','cup','friendly')),
   kamera        boolean default false,
   notizen       text,
   swiss_uh_id   text,

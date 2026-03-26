@@ -115,7 +115,7 @@ function closeModal(){document.getElementById("inventarModal").classList.remove(
 async function saveItem(){
   const data={name:document.getElementById("if-name").value,kategorie:document.getElementById("if-kategorie").value||"Sonstiges",lagerort:document.getElementById("if-lagerort").value||null,anzahl_total:parseInt(document.getElementById("if-total").value)||1,anzahl_verfuegbar:parseInt(document.getElementById("if-verf").value)||1,zustand:document.getElementById("if-zustand").value,anschaffungspreis:parseFloat(document.getElementById("if-preis").value)||null,foto_url:fotoUrl||null};
   if(!data.name){alert("Bitte Name eingeben.");return;}
-  if(editId){await db.from("inventar").update(data).eq("id",editId);}else{await db.from("inventar").insert([data]);}
+  if(editId){await db.from("inventar").update(data).eq("id",editId);}else{await db.from("inventar").insert([{club_id:CLUB_ID,...data}]);}
   closeModal();const{data:d}=await db.from('inventar').select("*").eq('club_id',CLUB_ID).order("kategorie").order("name");inventar=d||[];render();updateStats();
 }
 async function deleteItem(id){if(!confirm("Objekt loeschen?"))return;await db.from("inventar").delete().eq("id",id);inventar=inventar.filter(i=>i.id!==id);render();updateStats();}

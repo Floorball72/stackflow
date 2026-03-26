@@ -73,7 +73,7 @@ async function initDB(){
 }
 async function loadData(){
   const[g,e]=await Promise.all([
-    db.from('games').select('datum,gegner,heimspiel,teams(name).eq('club_id',CLUB_ID)').order('datum'),
+    db.from('games').select('datum,gegner,heimspiel,teams(name)').eq('club_id',CLUB_ID).order('datum'),
     db.from('events').select('datum,titel,typ').eq('club_id',CLUB_ID).order('datum'),
   ]);
   games=g.data||[];events=e.data||[];

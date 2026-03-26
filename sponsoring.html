@@ -138,7 +138,7 @@ function closeModal(){document.getElementById("sponsorModal").classList.remove("
 async function saveSponsor(){
   const data={firmenname:document.getElementById("sf-firma").value,logo_url:logoUrl||null,kontaktperson:document.getElementById("sf-kontakt").value||null,email:document.getElementById("sf-email").value||null,telefon:document.getElementById("sf-telefon").value||null,website:document.getElementById("sf-website").value||null,betrag_jahr:parseFloat(document.getElementById("sf-betrag").value)||null,kategorie:document.getElementById("sf-kat").value,status:document.getElementById("sf-status").value,vertrag_start:document.getElementById("sf-start").value||null,vertrag_ende:document.getElementById("sf-ende").value||null};
   if(!data.firmenname){alert("Bitte Firmenname eingeben.");return;}
-  if(editId){await db.from("sponsoren").update(data).eq("id",editId);}else{await db.from("sponsoren").insert([data]);}
+  if(editId){await db.from("sponsoren").update(data).eq("id",editId);}else{await db.from("sponsoren").insert([{club_id:CLUB_ID,...data}]);}
   closeModal();await loadAll();
 }
 async function deleteSponsor(id){if(!confirm("Sponsor wirklich löschen?"))return;await db.from("sponsoren").delete().eq("id",id);await loadAll();}

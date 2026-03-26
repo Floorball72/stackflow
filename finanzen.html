@@ -196,6 +196,20 @@ function setKonto(name) {
   render();
 }
 
+async function deleteKonto(name) {
+  if (name === "Allgemein") { alert("Das Allgemein-Konto kann nicht gelöscht werden."); return; }
+  const buchungenImKonto = buchungen.filter(b => (b.konto || "Allgemein") === name);
+  if (buchungenImKonto.length > 0) {
+    if (!confirm("Das Konto "" + name + "" hat " + buchungenImKonto.length + " Buchungen. Diese werden auf 'Allgemein' verschoben. Fortfahren?")) return;
+    // Buchungen auf Allgemein verschieben
+    await Promise.all(buchungenImKonto.map(b => db.from("finanzen").update({ konto: "Allgemein" }).eq("id", b.id)));
+  } else {
+    if (!confirm('Konto "' + name + '" löschen?')) return;
+  }
+  if (activeKonto === name) activeKonto = "__alle__";
+  await loadAll();
+}
+
 function render() {
   const isGesamt = activeKonto === "__alle__";
   const kName = isGesamt ? null : activeKonto;
