@@ -1,10 +1,11 @@
 -- ============================================================
--- Vereins-Plattform — VOLLSTÄNDIGES RESET & SETUP
--- Unterstützt mehrere Vereine via club_id
+-- Stackflow — Vereinsplattform
+-- VOLLSTÄNDIGES RESET & SETUP
 -- ⚠️  Löscht ALLES und erstellt von Grund auf neu
+-- Im Supabase SQL Editor ausführen
 -- ============================================================
 
--- ── 1. Alles löschen ──────────────────────────────────────
+-- ── 1. Alles löschen (Reihenfolge beachten: Abhängigkeiten zuerst) ──
 drop table if exists inventar_ausleihen     cascade;
 drop table if exists inventar               cascade;
 drop table if exists sponsor_leistungen     cascade;
@@ -20,28 +21,48 @@ drop table if exists finanzen               cascade;
 drop table if exists events                 cascade;
 drop table if exists games                  cascade;
 drop table if exists players                cascade;
-drop table if exists teams                  cascade;
 drop table if exists user_club_memberships  cascade;
 drop table if exists user_profiles          cascade;
+drop table if exists teams                  cascade;
 drop table if exists clubs                  cascade;
 
--- ── 2. Vereine (Stammdaten) ────────────────────────────────
+-- ── 2. Vereine ────────────────────────────────────────────────
 create table clubs (
-  club_id     text primary key,           -- z.B. 'uhc-jonschwil'
-  name        text not null,
-  short_name  text,
-  swiss_uh_id integer,
+  club_id       text primary key,
+  name          text not null,
+  short_name    text,
+  swiss_uh_id   integer,
   primary_color text default '#d4f04a',
-  gcal_id     text,
-  aktiv       boolean default true,
-  created_at  timestamptz default now()
+  gcal_id       text,
+  aktiv         boolean default true,
+  created_at    timestamptz default now()
 );
 
--- Demo-Daten Vereine
-insert into clubs (club_id, name, short_name, swiss_uh_id, primary_color) values
-  ('uhc-jonschwil', 'UHC Jonschwil Vipers', 'Vipers', 692, '#d4f04a');
+-- ── 3. User-Profile (referenziert auth.users — von Supabase verwaltet) ──
+create table user_profiles (
+  id            uuid primary key default gen_random_uuid(),
+  auth_user_id  uuid unique references auth.users(id) on delete set null,
+  club_id       text references clubs(club_id) on delete set null,
+  vorname       text not null default '',
+  nachname      text not null default '',
+  email         text,
+  telefon       text,
+  adresse       text,
+  geburtsdatum  date,
+  foto_url      text,
+  rolle         text default 'spieler'
+                  check (rolle in ('admin','trainer','spieler','eltern')),
+  team_ids      uuid[],
+  kind_ids      uuid[],
+  aktiv         boolean default true,
+  login_status  text default 'pending'
+                  check (login_status in ('pending','invited','active')),
+  mitglied_seit date default current_date,
+  mitglied_bis  date,
+  created_at    timestamptz default now()
+);
 
--- ── 4. User ↔ Verein Zuordnung (pro Verein eigene Rolle) ──
+-- ── 4. User ↔ Verein Mitgliedschaft ──────────────────────────
 create table user_club_memberships (
   id            uuid primary key default gen_random_uuid(),
   user_id       uuid references user_profiles(id) on delete cascade,
@@ -49,15 +70,13 @@ create table user_club_memberships (
   rolle         text default 'spieler'
                   check (rolle in ('admin','trainer','spieler','eltern')),
   team_ids      uuid[],
-  kind_ids      uuid[],
   mitglied_seit date default current_date,
-  mitglied_bis  date,
   aktiv         boolean default true,
   created_at    timestamptz default now(),
   unique(user_id, club_id)
 );
 
--- ── 5. Teams ───────────────────────────────────────────────
+-- ── 5. Teams ─────────────────────────────────────────────────
 create table teams (
   id              uuid primary key default gen_random_uuid(),
   club_id         text references clubs(club_id) on delete cascade,
@@ -70,48 +89,49 @@ create table teams (
   created_at      timestamptz default now()
 );
 
--- ── 6. Spieler ─────────────────────────────────────────────
+-- ── 6. Spieler ───────────────────────────────────────────────
 create table players (
-  id            uuid primary key default gen_random_uuid(),
-  club_id       text references clubs(club_id) on delete cascade,
-  team_id       uuid references teams(id) on delete cascade,
-  user_id       uuid references auth.users(id) on delete set null,
-  vorname       text not null,
-  nachname      text not null,
-  nummer        integer,
-  position      text,
-  email         text,
-  telefon       text,
-  geburtsdatum  date,
-  trikot_shirt     text,  -- Trikotgroesse Shirt (XXS–XXXL)
-  trikot_hose      text,  -- Trikotgroesse Hose
-  trikot_stuelpengr text, -- Trikotgroesse Stuelpengamaschen
-  aktiv         boolean default true,
-  created_at    timestamptz default now()
+  id                  uuid primary key default gen_random_uuid(),
+  club_id             text references clubs(club_id) on delete cascade,
+  team_id             uuid references teams(id) on delete set null,
+  user_id             uuid references auth.users(id) on delete set null,
+  vorname             text not null,
+  nachname            text not null,
+  nummer              integer,
+  position            text,
+  email               text,
+  telefon             text,
+  geburtsdatum        date,
+  trikot_shirt        text,
+  trikot_hose         text,
+  trikot_stuelpengr   text,
+  aktiv               boolean default true,
+  created_at          timestamptz default now()
 );
 
--- ── 7. Spiele ──────────────────────────────────────────────
+-- ── 7. Spiele ────────────────────────────────────────────────
 create table games (
-  id            uuid primary key default gen_random_uuid(),
-  club_id       text references clubs(club_id) on delete cascade,
-  team_id       uuid references teams(id) on delete cascade,
-  gegner        text not null,
-  datum         date not null,
-  anstoss       time not null default '17:00',
-  heimspiel     boolean default true,
-  liga          text,
-  ort           text,
-  resultat_heim integer,
-  resultat_gast integer,
-  spielkategorie text default 'saison' check (spielkategorie in ('saison','cup','friendly')),
-  kamera        boolean default false,
-  notizen       text,
-  swiss_uh_id   text,
-  google_cal_id text,
-  created_at    timestamptz default now()
+  id              uuid primary key default gen_random_uuid(),
+  club_id         text references clubs(club_id) on delete cascade,
+  team_id         uuid references teams(id) on delete cascade,
+  gegner          text not null,
+  datum           date not null,
+  anstoss         time not null default '17:00',
+  heimspiel       boolean default true,
+  spielkategorie  text default 'saison'
+                    check (spielkategorie in ('saison','cup','friendly')),
+  liga            text,
+  ort             text,
+  resultat_heim   integer,
+  resultat_gast   integer,
+  kamera          boolean default false,
+  notizen         text,
+  swiss_uh_id     text,
+  google_cal_id   text,
+  created_at      timestamptz default now()
 );
 
--- ── 8. Events ──────────────────────────────────────────────
+-- ── 8. Events ────────────────────────────────────────────────
 create table events (
   id            uuid primary key default gen_random_uuid(),
   club_id       text references clubs(club_id) on delete cascade,
@@ -130,7 +150,7 @@ create table events (
   created_at    timestamptz default now()
 );
 
--- ── 9. News ────────────────────────────────────────────────
+-- ── 9. News ──────────────────────────────────────────────────
 create table news (
   id            uuid primary key default gen_random_uuid(),
   club_id       text references clubs(club_id) on delete cascade,
@@ -147,7 +167,7 @@ create table news (
   created_at    timestamptz default now()
 );
 
--- ── 10. Social Media Posts ─────────────────────────────────
+-- ── 10. Social Media Posts ───────────────────────────────────
 create table social_posts (
   id            uuid primary key default gen_random_uuid(),
   club_id       text references clubs(club_id) on delete cascade,
@@ -163,12 +183,12 @@ create table social_posts (
   created_at    timestamptz default now()
 );
 
--- ── 11. Scorer ─────────────────────────────────────────────
+-- ── 11. Scorer / Spielerstatistiken ─────────────────────────
 create table scorer (
   id            uuid primary key default gen_random_uuid(),
   club_id       text references clubs(club_id) on delete cascade,
   player_id     uuid references players(id) on delete cascade,
-  game_id       uuid references games(id) on delete cascade,
+  game_id       uuid references games(id) on delete set null,
   tore          integer default 0,
   assists       integer default 0,
   strafminuten  integer default 0,
@@ -177,24 +197,24 @@ create table scorer (
   unique(player_id, game_id)
 );
 
--- ── 12. Anwesenheit ────────────────────────────────────────
+-- ── 12. Anwesenheit ──────────────────────────────────────────
 create table anwesenheit (
-  id             uuid primary key default gen_random_uuid(),
-  club_id        text references clubs(club_id) on delete cascade,
-  player_id      uuid references players(id) on delete cascade,
-  team_id        uuid references teams(id) on delete cascade,
-  game_id        uuid references games(id) on delete set null,
-  event_id       uuid references events(id) on delete set null,
-  training_datum date,
-  typ            text default 'training'
-                   check (typ in ('training','spiel','event')),
-  status         text default 'offen'
-                   check (status in ('anwesend','abwesend','entschuldigt','offen')),
-  notiz          text,
-  created_at     timestamptz default now()
+  id              uuid primary key default gen_random_uuid(),
+  club_id         text references clubs(club_id) on delete cascade,
+  player_id       uuid references players(id) on delete cascade,
+  team_id         uuid references teams(id) on delete cascade,
+  game_id         uuid references games(id) on delete set null,
+  event_id        uuid references events(id) on delete set null,
+  training_datum  date,
+  typ             text default 'training'
+                    check (typ in ('training','spiel','event')),
+  status          text default 'offen'
+                    check (status in ('anwesend','abwesend','entschuldigt','offen')),
+  notiz           text,
+  created_at      timestamptz default now()
 );
 
--- ── 13. Finanzen ───────────────────────────────────────────
+-- ── 13. Finanzen ─────────────────────────────────────────────
 create table finanzen (
   id            uuid primary key default gen_random_uuid(),
   club_id       text references clubs(club_id) on delete cascade,
@@ -202,37 +222,38 @@ create table finanzen (
   event_id      uuid references events(id) on delete set null,
   typ           text not null check (typ in ('einnahme','ausgabe')),
   betrag        numeric(10,2) not null,
+  konto         text default 'Allgemein',
   kategorie     text,
   beschreibung  text,
   beleg_url     text,
   datum         date not null,
-  konto         text default 'Allgemein',  -- Kontobezeichnung (Cup, Saison etc.)
   erstellt_von  uuid references auth.users(id) on delete set null,
   created_at    timestamptz default now()
 );
 
--- ── 14. Sponsoren ──────────────────────────────────────────
+-- ── 14. Sponsoren ────────────────────────────────────────────
 create table sponsoren (
-  id            uuid primary key default gen_random_uuid(),
-  club_id       text references clubs(club_id) on delete cascade,
-  firmenname    text not null,
-  kontaktperson text,
-  email         text,
-  telefon       text,
-  website       text,
-  logo_url      text,
-  kategorie     text,
-  betrag_jahr   numeric(10,2),
-  vertrag_start date,
-  vertrag_ende  date,
-  status        text default 'aktiv'
-                  check (status in ('aktiv','inaktiv','verhandlung')),
-  notizen       text,
-  created_at    timestamptz default now()
+  id              uuid primary key default gen_random_uuid(),
+  club_id         text references clubs(club_id) on delete cascade,
+  firmenname      text not null,
+  kontaktperson   text,
+  email           text,
+  telefon         text,
+  website         text,
+  logo_url        text,
+  kategorie       text,
+  betrag_jahr     numeric(10,2),
+  vertrag_start   date,
+  vertrag_ende    date,
+  status          text default 'aktiv'
+                    check (status in ('aktiv','inaktiv','verhandlung')),
+  notizen         text,
+  created_at      timestamptz default now()
 );
 
 create table sponsor_leistungen (
   id            uuid primary key default gen_random_uuid(),
+  club_id       text references clubs(club_id) on delete cascade,
   sponsor_id    uuid references sponsoren(id) on delete cascade,
   beschreibung  text not null,
   typ           text,
@@ -241,40 +262,42 @@ create table sponsor_leistungen (
   created_at    timestamptz default now()
 );
 
--- ── 15. Inventar ───────────────────────────────────────────
+-- ── 15. Inventar ─────────────────────────────────────────────
 create table inventar (
-  id                uuid primary key default gen_random_uuid(),
-  club_id           text references clubs(club_id) on delete cascade,
-  name              text not null,
-  kategorie         text,
-  anzahl_total      integer default 1,
-  anzahl_verfuegbar integer default 1,
-  zustand           text default 'gut'
-                      check (zustand in ('neu','gut','gebraucht','defekt')),
-  lagerort          text,
-  foto_url          text,
-  anschaffungsdatum date,
-  anschaffungspreis numeric(10,2),
-  notizen           text,
-  created_at        timestamptz default now()
+  id                  uuid primary key default gen_random_uuid(),
+  club_id             text references clubs(club_id) on delete cascade,
+  name                text not null,
+  kategorie           text,
+  anzahl_total        integer default 1,
+  anzahl_verfuegbar   integer default 1,
+  zustand             text default 'gut'
+                        check (zustand in ('neu','gut','gebraucht','defekt')),
+  lagerort            text,
+  foto_url            text,
+  anschaffungsdatum   date,
+  anschaffungspreis   numeric(10,2),
+  notizen             text,
+  created_at          timestamptz default now()
 );
 
 create table inventar_ausleihen (
-  id                   uuid primary key default gen_random_uuid(),
-  inventar_id          uuid references inventar(id) on delete cascade,
-  player_id            uuid references players(id) on delete set null,
-  ausgegeben_am        date default current_date,
-  zurueck_bis          date,
-  zurueckgegeben_am    date,
-  notizen              text,
-  created_at           timestamptz default now()
+  id                    uuid primary key default gen_random_uuid(),
+  inventar_id           uuid references inventar(id) on delete cascade,
+  player_id             uuid references players(id) on delete set null,
+  ausgegeben_am         date default current_date,
+  zurueck_bis           date,
+  zurueckgegeben_am     date,
+  mietpreis             numeric(10,2),
+  bezahlt               boolean default false,
+  notizen               text,
+  created_at            timestamptz default now()
 );
 
--- ── 16. Training & Video ───────────────────────────────────
+-- ── 16. Training & Video ─────────────────────────────────────
 create table trainingseinheiten (
   id            uuid primary key default gen_random_uuid(),
   club_id       text references clubs(club_id) on delete cascade,
-  team_id       uuid references teams(id) on delete cascade,
+  team_id       uuid references teams(id) on delete set null,
   titel         text not null,
   beschreibung  text,
   kategorie     text,
@@ -290,6 +313,7 @@ create table videoanalysen (
   club_id       text references clubs(club_id) on delete cascade,
   game_id       uuid references games(id) on delete set null,
   titel         text not null,
+  kategorie     text,
   video_url     text,
   notizen       text,
   tags          text[],
@@ -298,7 +322,7 @@ create table videoanalysen (
   created_at    timestamptz default now()
 );
 
--- ── 17. Mitgliedsausweise ──────────────────────────────────
+-- ── 17. Mitgliedsausweise ────────────────────────────────────
 create table mitgliedsausweise (
   id            uuid primary key default gen_random_uuid(),
   club_id       text references clubs(club_id) on delete cascade,
@@ -309,18 +333,19 @@ create table mitgliedsausweise (
   created_at    timestamptz default now()
 );
 
--- ── Indexes ────────────────────────────────────────────────
+-- ── Indexes ───────────────────────────────────────────────────
 create index on games(club_id, datum);
 create index on players(club_id, team_id);
 create index on players(user_id);
+create index on players(email);
 create index on scorer(club_id, player_id);
 create index on anwesenheit(club_id, training_datum);
 create index on news(club_id, erstellt_am desc);
 create index on finanzen(club_id, datum desc);
-create index on user_club_memberships(user_id, club_id);
+create index on user_profiles(club_id);
 create index on teams(club_id);
 
--- ── RLS aktivieren ─────────────────────────────────────────
+-- ── Row Level Security ────────────────────────────────────────
 alter table clubs                 enable row level security;
 alter table user_profiles         enable row level security;
 alter table user_club_memberships enable row level security;
@@ -341,47 +366,50 @@ alter table trainingseinheiten    enable row level security;
 alter table videoanalysen         enable row level security;
 alter table mitgliedsausweise     enable row level security;
 
--- ── RLS Policies ───────────────────────────────────────────
--- Vereine: öffentlich lesbar
-create policy "clubs_public_read"   on clubs   for select using (true);
-create policy "clubs_auth_write"    on clubs   for all    using (auth.role() = 'authenticated');
+-- ── RLS Policies ─────────────────────────────────────────────
+-- Öffentlich lesbar
+create policy "clubs_read"     on clubs   for select using (true);
+create policy "teams_read"     on teams   for select using (true);
+create policy "games_read"     on games   for select using (true);
+create policy "players_read"   on players for select using (true);
 
--- Spielplan, Teams, Spieler: öffentlich lesbar
-create policy "teams_public_read"   on teams   for select using (true);
-create policy "games_public_read"   on games   for select using (true);
-create policy "players_public_read" on players for select using (true);
+-- Eingeloggte User: lesen
+create policy "auth_news"      on news                for all using (auth.role() = 'authenticated');
+create policy "auth_events"    on events              for all using (auth.role() = 'authenticated');
+create policy "auth_scorer"    on scorer              for all using (auth.role() = 'authenticated');
+create policy "auth_anw"       on anwesenheit         for all using (auth.role() = 'authenticated');
+create policy "auth_posts"     on social_posts        for all using (auth.role() = 'authenticated');
+create policy "auth_finanzen"  on finanzen            for all using (auth.role() = 'authenticated');
+create policy "auth_sponsoren" on sponsoren           for all using (auth.role() = 'authenticated');
+create policy "auth_sponlei"   on sponsor_leistungen  for all using (auth.role() = 'authenticated');
+create policy "auth_inventar"  on inventar            for all using (auth.role() = 'authenticated');
+create policy "auth_invausl"   on inventar_ausleihen  for all using (auth.role() = 'authenticated');
+create policy "auth_training"  on trainingseinheiten  for all using (auth.role() = 'authenticated');
+create policy "auth_video"     on videoanalysen       for all using (auth.role() = 'authenticated');
+create policy "auth_ausweise"  on mitgliedsausweise   for all using (auth.role() = 'authenticated');
+create policy "auth_teams_w"   on teams               for all using (auth.role() = 'authenticated');
+create policy "auth_games_w"   on games               for all using (auth.role() = 'authenticated');
+create policy "auth_players_w" on players             for all using (auth.role() = 'authenticated');
+create policy "auth_clubs_w"   on clubs               for all using (auth.role() = 'authenticated');
 
--- Alle anderen: nur eingeloggte User
-create policy "auth_all_events"       on events              for all using (auth.role() = 'authenticated');
-create policy "auth_all_news"         on news                for all using (auth.role() = 'authenticated');
-create policy "auth_all_posts"        on social_posts        for all using (auth.role() = 'authenticated');
-create policy "auth_all_scorer"       on scorer              for all using (auth.role() = 'authenticated');
-create policy "auth_all_anw"          on anwesenheit         for all using (auth.role() = 'authenticated');
-create policy "auth_all_finanzen"     on finanzen            for all using (auth.role() = 'authenticated');
-create policy "auth_all_sponsoren"    on sponsoren           for all using (auth.role() = 'authenticated');
-create policy "auth_all_sponlei"      on sponsor_leistungen  for all using (auth.role() = 'authenticated');
-create policy "auth_all_inventar"     on inventar            for all using (auth.role() = 'authenticated');
-create policy "auth_all_invausl"      on inventar_ausleihen  for all using (auth.role() = 'authenticated');
-create policy "auth_all_training"     on trainingseinheiten  for all using (auth.role() = 'authenticated');
-create policy "auth_all_video"        on videoanalysen       for all using (auth.role() = 'authenticated');
-create policy "auth_all_ausweise"     on mitgliedsausweise   for all using (auth.role() = 'authenticated');
-create policy "auth_all_teams_write"  on teams               for all using (auth.role() = 'authenticated');
-create policy "auth_all_games_write"  on games               for all using (auth.role() = 'authenticated');
-create policy "auth_all_players_write"on players             for all using (auth.role() = 'authenticated');
-
--- User-Profile: nur eigenes
+-- User-Profile: nur eigenes Profil + Club-Mitgliedschaft
 create policy "own_profile"     on user_profiles           for all using (auth.uid() = id);
-create policy "own_memberships" on user_club_memberships   for all using (auth.uid() = user_id);
+create policy "own_membership"  on user_club_memberships   for all using (auth.uid() = user_id);
 
--- ── Demo-Daten ─────────────────────────────────────────────
--- UHC Jonschwil Teams
+-- ── Demo-Daten ────────────────────────────────────────────────
+insert into clubs (club_id, name, short_name, swiss_uh_id, primary_color) values
+  ('uhc-jonschwil', 'UHC Jonschwil Vipers', 'Vipers', 692, '#d4f04a');
+
 insert into teams (club_id, name, liga, trainingszeiten, trainingsort) values
-  ('uhc-jonschwil','UHC Jonschwil Vipers 1. Liga', '1. Liga Gr.3','Di+Do 20:00','Sporthalle Jonschwil'),
-  ('uhc-jonschwil','UHC Jonschwil Vipers 2. Liga', '2. Liga',     'Mo+Mi 19:30','Sporthalle Jonschwil'),
-  ('uhc-jonschwil','UHC Jonschwil Junioren U18',   'Junioren A',  'Sa 10:00',  'Sporthalle Jonschwil'),
-  ('uhc-jonschwil','UHC Jonschwil Junioren U15',   'Junioren B',  'Sa 08:30',  'Sporthalle Jonschwil');
+  ('uhc-jonschwil', 'UHC Jonschwil Vipers 1. Liga',  '1. Liga Gr.3', 'Di+Do 20:00', 'Sporthalle Jonschwil'),
+  ('uhc-jonschwil', 'UHC Jonschwil Vipers 2. Liga',  '2. Liga',      'Mo+Mi 19:30', 'Sporthalle Jonschwil'),
+  ('uhc-jonschwil', 'UHC Jonschwil Junioren U18',    'Junioren A',   'Sa 10:00',    'Sporthalle Jonschwil'),
+  ('uhc-jonschwil', 'UHC Jonschwil Junioren U15',    'Junioren B',   'Sa 08:30',    'Sporthalle Jonschwil');
 
--- Demo-News pro Verein
 insert into news (club_id, titel, inhalt, typ, gepinnt) values
-  ('uhc-jonschwil',    'Willkommen bei UHC Jonschwil Vipers!','Alle Infos hier.','info',true);
-  -- ============================================================
+  ('uhc-jonschwil', 'Willkommen bei Stackflow!', 'Alle Vereinsdaten zentral verwalten.', 'info', true);
+
+-- ============================================================
+-- Setup abgeschlossen!
+-- 17 Tabellen erstellt, RLS aktiv, Demo-Daten eingefügt.
+-- ============================================================

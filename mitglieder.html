@@ -403,11 +403,10 @@ async function saveMitglied(){
     closeModal();
   } else {
     // ── Neu erstellen ────────────────────────────────────────
-    // Wir speichern das Profil zunächst ohne Auth-ID (id = placeholder UUID).
-    // Wenn die Person sich registriert (Login-Seite), wird die UUID durch die echte Auth-ID ersetzt,
-    // weil beim Register nach matching email gesucht wird.
-    const profileId=crypto.randomUUID();
-    await db.from("user_profiles").insert([{id:profileId,club_id:CLUB_ID,...profileData}]);
+    // Profil ohne Auth-ID erstellen — Verknüpfung erfolgt beim Login per E-Mail
+    const{data:newProf,error:profErr}=await db.from("user_profiles").insert([{club_id:CLUB_ID,...profileData}]).select("id").single();
+    if(profErr){alert("Fehler: "+profErr.message);return;}
+    const profileId=newProf.id;
     // Spieler-Eintrag anlegen
     if(trikotData){
       await db.from("players").insert([{

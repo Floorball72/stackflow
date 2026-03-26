@@ -124,7 +124,7 @@ async function loadUserAndRedirect(user) {
     ? {...profile, email: user.email, rolle, club_id: activeClub.club_id, team_ids: membership?.team_ids}
     : { id: user.id, email: user.email, vorname: user.user_metadata?.vorname || '', nachname: user.user_metadata?.nachname || '', rolle, club_id: activeClub.club_id };
   // Login-Status auf 'active' setzen
-  try { await db.from('user_profiles').update({login_status:'active'}).eq('id', user.id); } catch(e){}
+  try { await db.from('user_profiles').update({login_status:'active'}).eq('auth_user_id', user.id); } catch(e){}
   localStorage.setItem('vipers_user', JSON.stringify({...userData, login_status:'active'}));
   window.location.href = 'dashboard.html';
 }
@@ -308,8 +308,8 @@ async function doRegister() {
       localStorage.setItem('vipers_user', JSON.stringify(merged));
     } else {
       // Kein bestehendes Profil → frisch anlegen
-      await db.from('user_profiles').upsert([{
-        id: userId, vorname: vn, nachname: nn, email,
+      await db.from('user_profiles').insert([{
+        auth_user_id: userId, vorname: vn, nachname: nn, email,
         rolle: selectedRolle,
         club_id: APP_CONFIG.ACTIVE_CLUB.club_id,
         aktiv: true, login_status: 'active',

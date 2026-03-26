@@ -163,7 +163,7 @@ function renderTabs() {
   // Gesamtkonto immer zuerst
   const gesamtSaldo = getSaldo(null);
   const gesamtPos = gesamtSaldo >= 0;
-  let html = `<div class="konto-tab${activeKonto === "__alle__" ? " active" : ""}" onclick="setKonto("__alle__")">
+  let html = `<div class="konto-tab${activeKonto === "__alle__" ? " active" : ""}" onclick="setKonto('__alle__')">
     <span class="konto-tab-dot" style="background:var(--accent)"></span>
     Gesamt
     <span class="konto-tab-saldo ${gesamtPos ? "pos" : "neg"}">${CHF(gesamtSaldo)}</span>
