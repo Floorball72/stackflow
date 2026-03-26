@@ -77,7 +77,7 @@ const roleBadges={admin:"role-admin",trainer:"role-trainer",spieler:"role-spiele
 
 async function init(){
   const mod=await import("https://esm.sh/@supabase/supabase-js@2");
-  const client=mod.createClient(CONFIG.SUPABASE_URL,CONFIG.SUPABASE_KEY);
+  const client=mod.createClient(CONFIG.SUPABASE_URL,CONFIG.SUPABASE_ANON_KEY);
   db=client;authClient=client.auth;
 
   // User aus localStorage + Session prüfen
@@ -325,7 +325,7 @@ renderNav(null); // Kein aktiver Nav-Eintrag für Profil
 function logout(){
   localStorage.removeItem("vipers_user");
   import("https://esm.sh/@supabase/supabase-js@2").then(mod=>{
-    mod.createClient(CONFIG.SUPABASE_URL,CONFIG.SUPABASE_KEY).auth.signOut();
+    mod.createClient(CONFIG.SUPABASE_URL,CONFIG.SUPABASE_ANON_KEY).auth.signOut();
   });
   window.location.href="login.html";
 }

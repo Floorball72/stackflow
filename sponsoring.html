@@ -80,7 +80,7 @@ const CHF=n=>n!=null?"CHF "+parseFloat(n).toLocaleString("de-CH",{minimumFractio
 
 async function initDB(){
   const mod=await import("https://esm.sh/@supabase/supabase-js@2");
-  db=mod.createClient(CONFIG.SUPABASE_URL,CONFIG.SUPABASE_KEY);
+  db=mod.createClient(CONFIG.SUPABASE_URL,CONFIG.SUPABASE_ANON_KEY);
   await loadAll();
 }
 async function loadAll(){

@@ -95,7 +95,7 @@ const AVATAR_COLORS={admin:"rgba(212,240,74,.2)",trainer:"rgba(155,143,255,.2)",
 
 async function initDB(){
   const mod=await import("https://esm.sh/@supabase/supabase-js@2");
-  db=mod.createClient(CONFIG.SUPABASE_URL,CONFIG.SUPABASE_KEY);
+  db=mod.createClient(CONFIG.SUPABASE_URL,CONFIG.SUPABASE_ANON_KEY);
   const[m,t]=await Promise.all([
     db.from("user_profiles").select("*").order("nachname"),
     db.from("teams").select("*").eq("aktiv",true),

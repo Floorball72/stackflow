@@ -478,7 +478,7 @@ const CONFIG = APP_CONFIG;
   async function initDB() {
     try {
       const mod = await import('https://esm.sh/@supabase/supabase-js@2');
-      db = mod.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
+      db = mod.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
       console.log('Supabase verbunden:', CONFIG.SUPABASE_URL);
       await loadGamesFromDB();
     } catch(e) { console.warn('DB nicht erreichbar, Demo-Daten aktiv:', e); renderGames(); }

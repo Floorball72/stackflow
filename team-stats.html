@@ -69,7 +69,7 @@ const teamId=params.get('id');
 
 async function initDB(){
   const mod=await import('https://esm.sh/@supabase/supabase-js@2');
-  db=mod.createClient(CONFIG.SUPABASE_URL,CONFIG.SUPABASE_KEY);
+  db=mod.createClient(CONFIG.SUPABASE_URL,CONFIG.SUPABASE_ANON_KEY);
   if(!teamId){location.href='spielplan.html';return;}
   const[t,g,s,p]=await Promise.all([
     db.from('teams').select('*').eq('id',teamId).single(),

@@ -79,7 +79,7 @@ let db=null,games=[],teams=[],kamera={};
 
 async function initDB(){
   const mod=await import("https://esm.sh/@supabase/supabase-js@2");
-  db=mod.createClient(CONFIG.SUPABASE_URL,CONFIG.SUPABASE_KEY);
+  db=mod.createClient(CONFIG.SUPABASE_URL,CONFIG.SUPABASE_ANON_KEY);
   const[g,t]=await Promise.all([
     db.from("games").select("*,teams(name)").order("datum").order("anstoss"),
     db.from("teams").select("*").eq("aktiv",true).order("name"),

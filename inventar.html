@@ -73,7 +73,7 @@ const CHF=n=>n!=null?"CHF "+parseFloat(n).toFixed(0):"–";
 
 async function initDB(){
   const mod=await import("https://esm.sh/@supabase/supabase-js@2");
-  db=mod.createClient(CONFIG.SUPABASE_URL,CONFIG.SUPABASE_KEY);
+  db=mod.createClient(CONFIG.SUPABASE_URL,CONFIG.SUPABASE_ANON_KEY);
   const{data}=await db.from("inventar").select("*").order("kategorie").order("name");
   inventar=data||[];render();updateStats();
 }

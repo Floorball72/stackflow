@@ -94,7 +94,7 @@ let allPlayers = [];
 
 async function init() {
   const mod = await import('https://esm.sh/@supabase/supabase-js@2');
-  const client = mod.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
+  const client = mod.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
   db = client;
   auth = client.auth;
 
