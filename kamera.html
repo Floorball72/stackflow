@@ -75,14 +75,15 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
 <script>
 // Config aus config.js
 const CONFIG = APP_CONFIG;
-let db=null,games=[],teams=[],kamera={};
+let db=null,CLUB_ID="uhc-jonschwil",games=[],teams=[],kamera={};
 
 async function initDB(){
   const mod=await import("https://esm.sh/@supabase/supabase-js@2");
   db=mod.createClient(CONFIG.SUPABASE_URL,CONFIG.SUPABASE_ANON_KEY);
+  CLUB_ID=APP_CONFIG.ACTIVE_CLUB.club_id;
   const[g,t]=await Promise.all([
-    db.from("games").select("*,teams(name)").order("datum").order("anstoss"),
-    db.from("teams").select("*").eq("aktiv",true).order("name"),
+    db.from('games').select("*,teams(name).eq('club_id',CLUB_ID)").order("datum").order("anstoss"),
+    db.from('teams').select("*").eq('club_id',CLUB_ID).eq("aktiv",true).order("name"),
   ]);
   games=g.data||[];teams=t.data||[];
   // Kamera-Daten aus games.notizen laden (temporaer bis eigene Spalte)

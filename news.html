@@ -72,18 +72,19 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
 <script src="config.js"></script>
 <script>
 const CONFIG = APP_CONFIG;
-let db=null,news=[],teams=[],editId=null;
+let db=null,CLUB_ID="uhc-jonschwil",news=[],teams=[],editId=null;
 let currentUser=null,currentRolle='admin';
 const TYP={info:"Info",wichtig:"Wichtig",training:"Training",spiel:"Spiel",event:"Event"};
 
 async function initDB(){
   const mod=await import("https://esm.sh/@supabase/supabase-js@2");
   db=mod.createClient(CONFIG.SUPABASE_URL,CONFIG.SUPABASE_ANON_KEY);
+  CLUB_ID=APP_CONFIG.ACTIVE_CLUB.club_id;
   currentUser=JSON.parse(localStorage.getItem("vipers_user")||"null");
   currentRolle=currentUser?.rolle||"admin";
   const[n,t]=await Promise.all([
-    db.from("news").select("*").order("gepinnt",{ascending:false}).order("erstellt_am",{ascending:false}),
-    db.from("teams").select("id,name").eq("aktiv",true).order("name"),
+    db.from('news').select("*").eq('club_id',CLUB_ID).order("gepinnt",{ascending:false}).order("erstellt_am",{ascending:false}),
+    db.from('teams').select("id,name").eq('club_id',CLUB_ID).eq("aktiv",true).order("name"),
   ]);
   teams=t.data||[];
   let allNews=n.data||[];

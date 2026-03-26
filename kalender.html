@@ -60,7 +60,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 <script>
 // Config aus config.js
 const CONFIG = APP_CONFIG;
-let db=null,games=[],events=[];
+let db=null,CLUB_ID="uhc-jonschwil",games=[],events=[];
 const MONATE=['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
 const WOCHENTAGE=['Mo','Di','Mi','Do','Fr','Sa','So'];
 let viewYear=new Date().getFullYear(), viewMonth=new Date().getMonth();
@@ -68,12 +68,13 @@ let viewYear=new Date().getFullYear(), viewMonth=new Date().getMonth();
 async function initDB(){
   const mod=await import('https://esm.sh/@supabase/supabase-js@2');
   db=mod.createClient(CONFIG.SUPABASE_URL,CONFIG.SUPABASE_ANON_KEY);
+  CLUB_ID=APP_CONFIG.ACTIVE_CLUB.club_id;
   await loadData();
 }
 async function loadData(){
   const[g,e]=await Promise.all([
-    db.from('games').select('datum,gegner,heimspiel,teams(name)').order('datum'),
-    db.from('events').select('datum,titel,typ').order('datum'),
+    db.from('games').select('datum,gegner,heimspiel,teams(name).eq('club_id',CLUB_ID)').order('datum'),
+    db.from('events').select('datum,titel,typ').eq('club_id',CLUB_ID).order('datum'),
   ]);
   games=g.data||[];events=e.data||[];
   renderCal();

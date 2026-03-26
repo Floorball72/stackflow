@@ -87,7 +87,7 @@ tr:hover .row-actions{opacity:1}
 <script>
 // Config aus config.js
 const CONFIG = APP_CONFIG;
-let db=null,mitglieder=[],teams=[],filterRolle="all",searchQ="",activeTab="liste",editId=null;
+let db=null,CLUB_ID="uhc-jonschwil",mitglieder=[],teams=[],filterRolle="all",searchQ="",activeTab="liste",editId=null;
 
 const ROLLE_COLORS={admin:"role-admin",trainer:"role-trainer",spieler:"role-spieler",eltern:"role-eltern"};
 const ROLLE_LABELS={admin:"Admin",trainer:"Trainer",spieler:"Spieler",eltern:"Eltern"};
@@ -96,9 +96,10 @@ const AVATAR_COLORS={admin:"rgba(212,240,74,.2)",trainer:"rgba(155,143,255,.2)",
 async function initDB(){
   const mod=await import("https://esm.sh/@supabase/supabase-js@2");
   db=mod.createClient(CONFIG.SUPABASE_URL,CONFIG.SUPABASE_ANON_KEY);
+  CLUB_ID=APP_CONFIG.ACTIVE_CLUB.club_id;
   const[m,t]=await Promise.all([
     db.from("user_profiles").select("*").order("nachname"),
-    db.from("teams").select("*").eq("aktiv",true),
+    db.from('teams').select("*").eq('club_id',CLUB_ID).eq("aktiv",true),
   ]);
   mitglieder=m.data||[];teams=t.data||[];
   render();updateStats();

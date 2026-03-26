@@ -56,15 +56,16 @@ tr:hover td{background:rgba(255,255,255,.02)}
 const CONFIG = APP_CONFIG;
 const params=new URLSearchParams(location.search);
 const playerId=params.get('id');
-let db=null,player=null,entries=[];
+let db=null,CLUB_ID="uhc-jonschwil",player=null,entries=[];
 
 async function initDB(){
   const mod=await import('https://esm.sh/@supabase/supabase-js@2');
   db=mod.createClient(CONFIG.SUPABASE_URL,CONFIG.SUPABASE_ANON_KEY);
+  CLUB_ID=APP_CONFIG.ACTIVE_CLUB.club_id;
   if(!playerId){location.href='spielplan.html';return;}
   const[p,s]=await Promise.all([
-    db.from('players').select('*,teams(name,liga)').eq('id',playerId).single(),
-    db.from('scorer').select('*,games(datum,gegner,heimspiel)').eq('player_id',playerId).order('games(datum)',{ascending:false}),
+    db.from('players').select('*,teams(name,liga).eq('club_id',CLUB_ID)').eq('id',playerId).single(),
+    db.from('scorer').select('*,games(datum,gegner,heimspiel).eq('club_id',CLUB_ID)').eq('player_id',playerId).order('games(datum)',{ascending:false}),
   ]);
   player=p.data;entries=s.data||[];
   render();

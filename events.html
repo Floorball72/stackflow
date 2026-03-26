@@ -89,15 +89,16 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
 const CONFIG = APP_CONFIG;
 const MONATE=["Jan","Feb","Mar","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov","Dez"];
 const TYP_LABELS={cup:"Cup",turnier:"Turnier",gv:"Generalversammlung",event:"Event",training:"Training"};
-let db=null,events=[],editId=null;
+let db=null,CLUB_ID="uhc-jonschwil",events=[],editId=null;
 
 async function initDB(){
   const mod=await import("https://esm.sh/@supabase/supabase-js@2");
   db=mod.createClient(CONFIG.SUPABASE_URL,CONFIG.SUPABASE_ANON_KEY);
+  CLUB_ID=APP_CONFIG.ACTIVE_CLUB.club_id;
   await loadEvents();
 }
 async function loadEvents(){
-  const{data}=await db.from("events").select("*").order("datum");
+  const{data}=await db.from('events').select("*").eq('club_id',CLUB_ID).order("datum");
   events=data||[];renderAll();
 }
 function renderAll(){renderEvents();updateStats();}
@@ -161,7 +162,7 @@ async function saveEvent(){
   if(!titel||!datum){alert("Titel und Datum sind Pflichtfelder.");return;}
   const data={titel,datum,typ:document.getElementById("ef-typ").value,uhrzeit:document.getElementById("ef-uhrzeit").value||null,ort:document.getElementById("ef-ort").value||null,beschreibung:document.getElementById("ef-beschreibung").value||null};
   if(editId){await db.from("events").update(data).eq("id",editId);}
-  else{await db.from("events").insert([{...data,todos:[]}]);}
+  else{await db.from("events").insert([{club_id:CLUB_ID,...data,todos:[]}]);}
   closeModal();await loadEvents();
 }
 async function deleteEvent(id){if(!confirm("Event wirklich loeschen?"))return;await db.from("events").delete().eq("id",id);await loadEvents();}

@@ -91,15 +91,16 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 <script>
 // Config aus config.js
 const CONFIG = APP_CONFIG;
-let db=null,buchungen=[],filterTyp='all',belegUrl=null;
+let db=null,CLUB_ID="uhc-jonschwil",buchungen=[],filterTyp='all',belegUrl=null;
 
 async function initDB(){
   const mod=await import('https://esm.sh/@supabase/supabase-js@2');
   db=mod.createClient(CONFIG.SUPABASE_URL,CONFIG.SUPABASE_ANON_KEY);
+  CLUB_ID=APP_CONFIG.ACTIVE_CLUB.club_id;
   await loadBuchungen();
 }
 async function loadBuchungen(){
-  const{data}=await db.from('finanzen').select('*').order('datum',{ascending:false});
+  const{data}=await db.from('finanzen').select('*').eq('club_id',CLUB_ID).order('datum',{ascending:false});
   buchungen=data||[];
   render();
 }

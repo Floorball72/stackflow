@@ -78,20 +78,21 @@ tr:hover .row-actions{opacity:1}
 <script>
 // Config aus config.js
 const CONFIG = APP_CONFIG;
-let db=null,scorer=[],teams=[],players=[],games=[],activeTeam='all';
+let db=null,CLUB_ID="uhc-jonschwil",scorer=[],teams=[],players=[],games=[],activeTeam='all';
 
 async function initDB(){
   const mod=await import('https://esm.sh/@supabase/supabase-js@2');
   db=mod.createClient(CONFIG.SUPABASE_URL,CONFIG.SUPABASE_ANON_KEY);
+  CLUB_ID=APP_CONFIG.ACTIVE_CLUB.club_id;
   await loadAll();
 }
 
 async function loadAll(){
   const[t,s,p,g]=await Promise.all([
-    db.from('teams').select('*').eq('aktiv',true).order('name'),
-    db.from('scorer').select('*, players(vorname,nachname,nummer,team_id), games(datum,gegner,teams(name))').order('tore',{ascending:false}),
-    db.from('players').select('*').eq('aktiv',true).order('nachname'),
-    db.from('games').select('*,teams(name)').order('datum',{ascending:false}),
+    db.from('teams').select('*').eq('club_id',CLUB_ID).eq('aktiv',true).order('name'),
+    db.from('scorer').select('*, players(vorname,nachname,nummer,team_id).eq('club_id',CLUB_ID), games(datum,gegner,teams(name))').order('tore',{ascending:false}),
+    db.from('players').select('*').eq('club_id',CLUB_ID).eq('aktiv',true).order('nachname'),
+    db.from('games').select('*,teams(name).eq('club_id',CLUB_ID)').order('datum',{ascending:false}),
   ]);
   teams=t.data||[];players=p.data||[];scorer=s.data||[];games=g.data||[];
   buildTeamPills();

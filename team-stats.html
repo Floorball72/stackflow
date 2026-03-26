@@ -63,19 +63,20 @@ tr:hover td{background:rgba(255,255,255,.02);cursor:pointer}
 <script>
 // Config aus config.js
 const CONFIG = APP_CONFIG;
-let db=null,team=null,games=[],scorer=[],players=[];
+let db=null,CLUB_ID="uhc-jonschwil",team=null,games=[],scorer=[],players=[];
 const params=new URLSearchParams(location.search);
 const teamId=params.get('id');
 
 async function initDB(){
   const mod=await import('https://esm.sh/@supabase/supabase-js@2');
   db=mod.createClient(CONFIG.SUPABASE_URL,CONFIG.SUPABASE_ANON_KEY);
+  CLUB_ID=APP_CONFIG.ACTIVE_CLUB.club_id;
   if(!teamId){location.href='spielplan.html';return;}
   const[t,g,s,p]=await Promise.all([
-    db.from('teams').select('*').eq('id',teamId).single(),
-    db.from('games').select('*').eq('team_id',teamId).order('datum'),
-    db.from('scorer').select('*,players(vorname,nachname,nummer)').eq('saison','2024/25'),
-    db.from('players').select('*').eq('team_id',teamId).eq('aktiv',true).order('nummer'),
+    db.from('teams').select('*').eq('club_id',CLUB_ID).eq('id',teamId).single(),
+    db.from('games').select('*').eq('club_id',CLUB_ID).eq('team_id',teamId).order('datum'),
+    db.from('scorer').select('*,players(vorname,nachname,nummer).eq('club_id',CLUB_ID)').eq('saison','2024/25'),
+    db.from('players').select('*').eq('club_id',CLUB_ID).eq('team_id',teamId).eq('aktiv',true).order('nummer'),
   ]);
   team=t.data;games=g.data||[];scorer=s.data||[];players=p.data||[];
   render();

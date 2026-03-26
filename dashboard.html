@@ -69,23 +69,24 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 <script>
 // Config aus config.js
 const CONFIG = APP_CONFIG;
-let db=null;
+let db=null,CLUB_ID="uhc-jonschwil";
 
 async function initDB(){
   const mod=await import('https://esm.sh/@supabase/supabase-js@2');
   db=mod.createClient(CONFIG.SUPABASE_URL,CONFIG.SUPABASE_ANON_KEY);
+  CLUB_ID=APP_CONFIG.ACTIVE_CLUB.club_id;
   await loadDashboard();
 }
 
 async function loadDashboard(){
   const today=new Date().toISOString().split('T')[0];
   const[teams,games,events,players,finanzen,scorer]=await Promise.all([
-    db.from('teams').select('id').eq('aktiv',true),
-    db.from('games').select('id,datum,anstoss,gegner,heimspiel,resultat_heim,resultat_gast,teams(name)').order('datum'),
-    db.from('events').select('id,datum,titel,typ').gte('datum',today).order('datum').limit(5),
-    db.from('players').select('id').eq('aktiv',true),
-    db.from('finanzen').select('typ,betrag'),
-    db.from('scorer').select('tore').order('tore',{ascending:false}).limit(1),
+    db.from('teams').select('id').eq('club_id',CLUB_ID).eq('aktiv',true),
+    db.from('games').select('id,datum,anstoss,gegner,heimspiel,resultat_heim,resultat_gast,teams(name).eq('club_id',CLUB_ID)').order('datum'),
+    db.from('events').select('id,datum,titel,typ').eq('club_id',CLUB_ID).gte('datum',today).order('datum').limit(5),
+    db.from('players').select('id').eq('club_id',CLUB_ID).eq('aktiv',true),
+    db.from('finanzen').select('typ,betrag').eq('club_id',CLUB_ID),
+    db.from('scorer').select('tore').eq('club_id',CLUB_ID).order('tore',{ascending:false}).limit(1),
   ]);
 
   const t=teams.data||[],g=games.data||[],e=events.data||[],p=players.data||[],f=finanzen.data||[];

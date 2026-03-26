@@ -76,19 +76,20 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 <script>
 // Config aus config.js
 const CONFIG = APP_CONFIG;
-let db=null,trainings=[],videos=[],teams=[],games=[],activeTab='training';
+let db=null,CLUB_ID="uhc-jonschwil",trainings=[],videos=[],teams=[],games=[],activeTab='training';
 
 async function initDB(){
   const mod=await import('https://esm.sh/@supabase/supabase-js@2');
   db=mod.createClient(CONFIG.SUPABASE_URL,CONFIG.SUPABASE_ANON_KEY);
+  CLUB_ID=APP_CONFIG.ACTIVE_CLUB.club_id;
   await loadAll();
 }
 async function loadAll(){
   const[tr,vi,te,ga]=await Promise.all([
-    db.from('trainingseinheiten').select('*,teams(name)').order('created_at',{ascending:false}),
-    db.from('videoanalysen').select('*,games(datum,gegner)').order('created_at',{ascending:false}),
-    db.from('teams').select('*').eq('aktiv',true).order('name'),
-    db.from('games').select('*').order('datum',{ascending:false}).limit(30),
+    db.from('trainingseinheiten').select('*,teams(name).eq('club_id',CLUB_ID)').order('created_at',{ascending:false}),
+    db.from('videoanalysen').select('*,games(datum,gegner).eq('club_id',CLUB_ID)').order('created_at',{ascending:false}),
+    db.from('teams').select('*').eq('club_id',CLUB_ID).eq('aktiv',true).order('name'),
+    db.from('games').select('*').eq('club_id',CLUB_ID).order('datum',{ascending:false}).limit(30),
   ]);
   trainings=tr.data||[];videos=vi.data||[];teams=te.data||[];games=ga.data||[];
   render();
@@ -190,7 +191,7 @@ function openVideoModal(){
 async function saveTraining(){
   const titel=document.getElementById('tf-titel').value;
   if(!titel){alert('Bitte Titel eingeben.');return;}
-  await db.from('trainingseinheiten').insert([{
+  await db.from('trainingseinheiten').insert([{club_id:CLUB_ID,
     titel,
     team_id:document.getElementById('tf-team').value||null,
     kategorie:document.getElementById('tf-kat').value||null,
@@ -207,7 +208,7 @@ async function saveVideo(){
   const titel=document.getElementById('vf-titel').value;
   if(!titel){alert('Bitte Titel eingeben.');return;}
   const tagsStr=document.getElementById('vf-tags').value;
-  await db.from('videoanalysen').insert([{
+  await db.from('videoanalysen').insert([{club_id:CLUB_ID,
     titel,
     game_id:document.getElementById('vf-game').value||null,
     video_url:document.getElementById('vf-url').value||null,

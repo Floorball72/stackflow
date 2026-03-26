@@ -474,11 +474,12 @@ const CONFIG = APP_CONFIG;
 
 <script>
   // ── Supabase Live-Anbindung ──
-  let db = null;
+  let db=null,CLUB_ID="uhc-jonschwil";
   async function initDB() {
     try {
       const mod = await import('https://esm.sh/@supabase/supabase-js@2');
       db = mod.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+  CLUB_ID = APP_CONFIG.ACTIVE_CLUB.club_id;
       console.log('Supabase verbunden:', CONFIG.SUPABASE_URL);
       await loadGamesFromDB();
     } catch(e) { console.warn('DB nicht erreichbar, Demo-Daten aktiv:', e); renderGames(); }
@@ -494,8 +495,8 @@ const CONFIG = APP_CONFIG;
     const lastSun = new Date(thisMon); lastSun.setDate(thisMon.getDate()-1);
     const fmt = d => d.toISOString().split('T')[0];
     const [res1, res2] = await Promise.all([
-      db.from('games').select('*, teams(name)').gte('datum',fmt(thisMon)).lte('datum',fmt(thisSun)).order('datum').order('anstoss'),
-      db.from('games').select('*, teams(name)').gte('datum',fmt(lastMon)).lte('datum',fmt(lastSun)).order('datum')
+      db.from('games').select('*, teams(name).eq('club_id',CLUB_ID)').gte('datum',fmt(thisMon)).lte('datum',fmt(thisSun)).order('datum').order('anstoss'),
+      db.from('games').select('*, teams(name).eq('club_id',CLUB_ID)').gte('datum',fmt(lastMon)).lte('datum',fmt(lastSun)).order('datum')
     ]);
     if (res1.data && res1.data.length > 0) {
       THIS_WEEKEND.length = 0;
@@ -693,7 +694,7 @@ async function saveManualPost(){
   if(document.getElementById("mp-ig").checked)plattformen.push("instagram");
   if(document.getElementById("mp-fb").checked)plattformen.push("facebook");
   if(document.getElementById("mp-tt").checked)plattformen.push("tiktok");
-  try{if(db){await db.from("social_posts").insert([{typ:document.getElementById("mp-typ").value,woche_datum:datum.split("T")[0],geplant_fuer:new Date(datum).toISOString(),status:"geplant",canva_link:document.getElementById("mp-canva").value||null,text_entwurf:document.getElementById("mp-text").value||null,plattformen}]);}}catch(e){console.warn(e);}
+  try{if(db){await db.from("social_posts").insert([{club_id:CLUB_ID,typ:document.getElementById("mp-typ").value,woche_datum:datum.split("T")[0],geplant_fuer:new Date(datum).toISOString(),status:"geplant",canva_link:document.getElementById("mp-canva").value||null,text_entwurf:document.getElementById("mp-text").value||null,plattformen}]);}}catch(e){console.warn(e);}
   document.getElementById("manualPostModal").classList.remove("open");
   alert("Post '"+titel+"' wurde gespeichert!");
 }

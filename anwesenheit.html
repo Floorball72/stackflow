@@ -74,7 +74,7 @@ body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min
 <script src="config.js"></script>
 <script>
 const CONFIG=APP_CONFIG;
-let db=null,teams=[],players=[],games=[],events=[],anwesenheit=[];
+let db=null,CLUB_ID="uhc-jonschwil",teams=[],players=[],games=[],events=[],anwesenheit=[];
 let currentUser=null,currentRolle="admin";
 let selTeam="",selTyp="training",selDatum="",selGameId="",selEventId="";
 const MONATE=["Jan","Feb","Mar","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov","Dez"];
@@ -82,14 +82,15 @@ const MONATE=["Jan","Feb","Mar","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov",
 async function initDB(){
   const mod=await import("https://esm.sh/@supabase/supabase-js@2");
   db=mod.createClient(CONFIG.SUPABASE_URL,CONFIG.SUPABASE_ANON_KEY);
+  CLUB_ID=APP_CONFIG.ACTIVE_CLUB.club_id;
   currentUser=JSON.parse(localStorage.getItem("vipers_user")||"null");
   currentRolle=currentUser?.rolle||"admin";
   const[t,p,g,e,a]=await Promise.all([
-    db.from("teams").select("*").eq("aktiv",true).order("name"),
-    db.from("players").select("*").eq("aktiv",true).order("nachname"),
-    db.from("games").select("*,teams(name)").order("datum",{ascending:false}).limit(30),
-    db.from("events").select("*").order("datum",{ascending:false}).limit(20),
-    db.from("anwesenheit").select("*").order("created_at",{ascending:false}),
+    db.from('teams').select("*").eq('club_id',CLUB_ID).eq("aktiv",true).order("name"),
+    db.from('players').select("*").eq('club_id',CLUB_ID).eq("aktiv",true).order("nachname"),
+    db.from('games').select("*,teams(name).eq('club_id',CLUB_ID)").order("datum",{ascending:false}).limit(30),
+    db.from('events').select("*").eq('club_id',CLUB_ID).order("datum",{ascending:false}).limit(20),
+    db.from('anwesenheit').select("*").eq('club_id',CLUB_ID).order("created_at",{ascending:false}),
   ]);
   teams=t.data||[];players=p.data||[];games=g.data||[];events=e.data||[];anwesenheit=a.data||[];
   if(teams.length&&!selTeam)selTeam=teams[0].id;
