@@ -380,26 +380,6 @@ async function deleteGame(id) {
 }
 
 
-async function savePlayer() {
-  const teamId = document.getElementById('players-modal-team-id').value;
-  const data = {
-    team_id: teamId,
-    vorname: document.getElementById('pf-vorname').value,
-    nachname: document.getElementById('pf-nachname').value,
-    nummer: parseInt(document.getElementById('pf-nummer').value) || null,
-    position: document.getElementById('pf-position').value || null,
-    geburtsdatum: document.getElementById('pf-geburt').value || null,
-  };
-  if (!data.vorname || !data.nachname) { alert('Bitte Vor- und Nachname eintragen.'); return; }
-  await db.from('players').insert([{club_id:CLUB_ID,...data}]);
-  document.getElementById('pf-vorname').value = '';
-  document.getElementById('pf-nachname').value = '';
-  document.getElementById('pf-nummer').value = '';
-  document.getElementById('pf-position').value = '';
-  document.getElementById('pf-geburt').value = '';
-  closeModal('addPlayerModal');
-  await loadPlayers(teamId);
-}
 
 async function deletePlayer(id) {
   if (!confirm('Spieler wirklich entfernen?')) return;
@@ -533,63 +513,6 @@ initDB().catch(e => {
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeModal('resultModal')">Abbrechen</button>
       <button class="btn btn-accent" onclick="saveResult()">Resultat speichern</button>
-    </div>
-  </div>
-</div>
-
-<!-- Modal: Spielerliste -->
-<div class="overlay" id="playersModal">
-  <div class="modal" style="max-width:600px">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-      <div class="modal-title" style="margin-bottom:0" id="players-modal-title">Spielerliste</div>
-      <button class="btn btn-accent" style="font-size:12px;padding:6px 12px" onclick="document.getElementById('addPlayerModal').classList.add('open')">+ Spieler</button>
-    </div>
-    <input type="hidden" id="players-modal-team-id">
-    <div id="players-list"><div class="loading">Lade Spieler...</div></div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeModal('playersModal')">Schliessen</button>
-    </div>
-  </div>
-</div>
-
-<!-- Modal: Spieler hinzufügen -->
-<div class="overlay" id="addPlayerModal">
-  <div class="modal" style="max-width:420px">
-    <div class="modal-title">Spieler hinzufügen</div>
-    <div class="form-grid">
-      <div class="form-row-2">
-        <div>
-          <label class="form-label">Vorname</label>
-          <input class="form-input" type="text" id="pf-vorname">
-        </div>
-        <div>
-          <label class="form-label">Nachname</label>
-          <input class="form-input" type="text" id="pf-nachname">
-        </div>
-      </div>
-      <div class="form-row-3">
-        <div>
-          <label class="form-label">Nummer</label>
-          <input class="form-input" type="number" id="pf-nummer" min="1" max="99">
-        </div>
-        <div>
-          <label class="form-label">Position</label>
-          <select class="form-input" id="pf-position">
-            <option value="">–</option>
-            <option>Torhüter</option>
-            <option>Verteidiger</option>
-            <option>Stürmer</option>
-          </select>
-        </div>
-        <div>
-          <label class="form-label">Jahrgang</label>
-          <input class="form-input" type="date" id="pf-geburt">
-        </div>
-      </div>
-    </div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeModal('addPlayerModal')">Abbrechen</button>
-      <button class="btn btn-accent" onclick="savePlayer()">Hinzufügen</button>
     </div>
   </div>
 </div>

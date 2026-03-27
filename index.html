@@ -347,7 +347,7 @@ const CONFIG = APP_CONFIG;
                   In Google Cal. ✓
                 </span>
                 <div class="post-actions">
-                  <button class="mini-btn" onclick="openCanva()">Canva öffnen</button>
+                  <button class="mini-btn" onclick="openCanva('${post.canva_link||''}')">Canva öffnen</button>
                   <button class="mini-btn primary" onclick="markPosted(this)">Gepostet ✓</button>
                 </div>
               </div>
@@ -370,7 +370,7 @@ const CONFIG = APP_CONFIG;
                 </span>
                 <div class="post-actions">
                   <button class="mini-btn warn" onclick="openResultModal()">Resultat nachtragen</button>
-                  <button class="mini-btn" onclick="openCanva()">Canva öffnen</button>
+                  <button class="mini-btn" onclick="openCanva('${post.canva_link||''}')">Canva öffnen</button>
                 </div>
               </div>
             </div>
@@ -464,7 +464,13 @@ const CONFIG = APP_CONFIG;
 
   function closeModal(id) { document.getElementById(id).classList.remove('open'); }
   function openResultModal() { document.getElementById('resultModal').classList.add('open'); }
-  function openCanva() { alert('Öffnet den Canva-Design-Link für diesen Post.\n\n(Wird mit dem Canva-Link aus der Datenbank verknüpft sobald du ihn hinterlegst.)'); }
+  function openCanva(link) {
+  if(link && link !== 'null' && link !== '') {
+    window.open(link,'_blank');
+  } else {
+    alert('Kein Canva-Link hinterlegt.\nBeim Post-Erstellen einen Canva-Link eingeben.');
+  }
+}
 
   function markPosted(btn) {
     btn.textContent = '✓ Erledigt';

@@ -135,7 +135,7 @@ function render(){
   const maxPts=data[0]?.punkte||1;
   const tbody=document.getElementById('scorer-tbody');
   if(data.length===0){
-    tbody.innerHTML='<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text3)">Keine Scorer-Daten. Trage Statistiken über "+ Statistik" ein.</td></tr>';
+    tbody.innerHTML='<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text3)">Keine Scorer-Daten. Trage Statistiken über "+ Statistik" ein.</td></tr>';
   } else {
     tbody.innerHTML=data.map((d,i)=>{
       const p=d.player;
@@ -149,7 +149,7 @@ function render(){
         <td class="num" style="color:var(--blue)">${d.assists}</td>
         <td class="num"><span class="pts-badge">${d.punkte}</span></td>
         <td class="num" style="color:var(--text3)">${d.spiele}</td>
-        <td class="num" style="color:var(--text3)">${d.strafmin}'</td>
+        <td class="num" style="color:var(--text3)">${d.strafmin}</td>
       </tr>`;
     }).join('');
   }
@@ -217,6 +217,20 @@ async function saveScorer(){
   await loadAll();
 }
 
+async function deleteScorer(playerId){
+  if(!confirm('Alle Statistikeinträge für diesen Spieler löschen?'))return;
+  await db.from('scorer').delete().eq('player_id',playerId).eq('club_id',CLUB_ID);
+  await loadAll();
+}
+async function openEditScorer(playerId){
+  const p=players.find(x=>x.id===playerId);
+  if(!p){alert('Spieler nicht gefunden');return;}
+  // Öffne Modal mit Spieler vorausgewählt
+  openAddScorer();
+  setTimeout(()=>{
+    document.getElementById('sf-player').value=playerId;
+  },50);
+}
 document.addEventListener('click',e=>{if(e.target.classList.contains('overlay'))e.target.classList.remove('open');});
 initDB().catch(e=>{console.error(e);});
 </script>
@@ -241,7 +255,7 @@ initDB().catch(e=>{console.error(e);});
           </div>
           <table>
             <thead><tr><th>#</th><th>Spieler</th><th class="num" style="color:var(--amber)">Tore</th><th class="num" style="color:var(--blue)">Assists</th><th class="num">Pkt.</th><th class="num">Sp.</th><th class="num">Str.</th></tr></thead>
-            <tbody id="scorer-tbody"><tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text3)">Lade...</td></tr></tbody>
+            <tbody id="scorer-tbody"><tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text3)">Lade...</td></tr></tbody>
           </table>
         </div>
         <div>
