@@ -294,9 +294,9 @@ function openModal(){
    "mf-shirt","mf-hose","mf-stuelpengr","mf-trikotnummer"].forEach(id=>{
     const el=document.getElementById(id);if(el)el.value="";
   });
-  document.getElementById("mf-rolle").value="spieler";
-  document.getElementById("mf-seit").value=new Date().toISOString().split("T")[0];
-  document.getElementById("mf-aktiv").value="true";
+  const _rolle=document.getElementById("mf-rolle");if(_rolle)_rolle.value="spieler";
+  const _seit=document.getElementById("mf-seit");if(_seit)_seit.value=new Date().toISOString().split("T")[0];
+  const _aktiv=document.getElementById("mf-aktiv");if(_aktiv)_aktiv.value="true";
   setClubAnzeige();
   toggleSpielerFelder("spieler");
   renderTeamCheckboxes([]);
@@ -337,12 +337,10 @@ async function loadPlayerFields(userId){
 }
 
 function renderTeamCheckboxes(selected){
-  try{
   const cont=document.getElementById("mf-teams-grid");
   if(!cont)return;
-  const clubTeams=teams.filter(t=>t.club_id===CLUB_ID);
-  if(!clubTeams.length){cont.innerHTML="<div style='font-size:12px;color:var(--text3)'>Keine Teams im Verein.</div>";return;}
-  cont.innerHTML=clubTeams.map(t=>{
+  if(!teams.length){cont.innerHTML="<div style='font-size:12px;color:var(--text3)'>Keine Teams erfasst.</div>";return;}
+  cont.innerHTML=teams.map(t=>{
     const sel=selected.includes(t.id);
     const short=t.name.replace(/UHC Jonschwil /g,"");
     return `<label style="display:flex;align-items:center;gap:7px;padding:7px 10px;background:var(--bg3);border:1px solid ${sel?"rgba(212,240,74,.35)":"var(--border2)"};border-radius:7px;cursor:pointer;font-size:12px;transition:all .12s">

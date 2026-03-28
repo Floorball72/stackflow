@@ -384,18 +384,13 @@ create policy "p_players_w"   on players               for all using (true) with
 create policy "p_clubs_w"     on clubs                 for all using (true) with check (true);
 create policy "p_news_w"      on news                  for all using (true) with check (true);
 
--- ── SCHRITT 5: Demo-Daten ─────────────────────────────────────
+-- ── SCHRITT 5: Vereinsdaten (Pflicht) ──────────────────────────
 insert into clubs (club_id, name, short_name, swiss_uh_id, primary_color) values
   ('uhc-jonschwil', 'UHC Jonschwil Vipers', 'Vipers', 692, '#d4f04a');
 
-insert into teams (club_id, name, liga, trainingszeiten, trainingsort) values
-  ('uhc-jonschwil', 'UHC Jonschwil Vipers 1. Liga',  '1. Liga Gr.3', 'Di+Do 20:00', 'Sporthalle Jonschwil'),
-  ('uhc-jonschwil', 'UHC Jonschwil Vipers 2. Liga',  '2. Liga',      'Mo+Mi 19:30', 'Sporthalle Jonschwil'),
-  ('uhc-jonschwil', 'UHC Jonschwil Junioren U18',    'Junioren A',   'Sa 10:00',    'Sporthalle Jonschwil'),
-  ('uhc-jonschwil', 'UHC Jonschwil Junioren U15',    'Junioren B',   'Sa 08:30',    'Sporthalle Jonschwil');
+-- Teams werden über die Teams-Seite erstellt
 
-insert into news (club_id, titel, inhalt, typ, gepinnt) values
-  ('uhc-jonschwil', 'Willkommen bei Stackflow!', 'Alle Vereinsdaten zentral verwalten.', 'info', true);
+-- News werden über die News-Seite erstellt
 
 -- ── Fertig! ───────────────────────────────────────────────────
 
@@ -431,8 +426,4 @@ values (
 on conflict do nothing;
 
 
-select
-  (select count(*) from clubs)      as vereine,
-  (select count(*) from teams)      as teams,
-  (select count(*) from news)       as news_eintraege,
-  '✓ Setup erfolgreich abgeschlossen!' as status;
+select '✓ Setup erfolgreich abgeschlossen! Tabellen bereit.' as status;
