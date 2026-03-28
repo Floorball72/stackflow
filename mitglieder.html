@@ -103,7 +103,7 @@ async function initDB(){
   ]);
   mitglieder=m.data||[];teams=t.data||[];
   render();updateStats();
-  const _ps=document.getElementById("m-page-sub");if(_ps)_ps.textContent=APP_CONFIG.ACTIVE_CLUB.name+" · Verwaltung aller Mitglieder";
+  const _ps=document.getElementById("m-page-sub");if(_ps)_ps.textContent="UHC Jonschwil Vipers ·  · Verwaltung aller Mitglieder";
   // Freigaben-Badge aus geladenen Mitgliedern berechnen
   const _ausstehend=(m.data||[]).filter(x=>x.login_status==="pending"||x.login_status==="invited").length;
   const _badge=document.getElementById("freigaben-badge");

@@ -83,7 +83,7 @@ async function initDB(){
   currentUser=JSON.parse(localStorage.getItem("vipers_user")||"null");
   currentRolle=currentUser?.rolle||"admin";
   const[n,t]=await Promise.all([
-    db.from('news').select("*").order("gepinnt",{ascending:false}).order("erstellt_am",{ascending:false}),
+    db.from('news').select("*").order("gepinnt",{ascending:false}).order("created_at",{ascending:false}),
     db.from('teams').select("id,name").eq("aktiv",true).order("name"),
   ]);
   teams=t.data||[];
@@ -113,7 +113,7 @@ function render(){
   const cont=document.getElementById("news-list");
   if(!news.length){cont.innerHTML="<div style='text-align:center;padding:60px;color:var(--text3)'><div style='font-size:15px;font-weight:500;color:var(--text2);margin-bottom:8px'>Noch keine Beitraege</div>"+(currentRolle==="admin"||currentRolle==="trainer"?"<button class='btn btn-accent' onclick='openModal()'>+ Ersten Beitrag verfassen</button>":"")+"</div>";return;}
   cont.innerHTML=news.map(n=>{
-    const d=new Date(n.erstellt_am).toLocaleDateString("de-CH",{day:"numeric",month:"short",year:"numeric"});
+    const d=new Date(n.created_at).toLocaleDateString("de-CH",{day:"numeric",month:"short",year:"numeric"});
     const teamNames=(n.team_ids||[]).map(id=>teams.find(t=>t.id===id)?.name?.replace("UHC Jonschwil ","")).filter(Boolean);
     const showAll=(n.zielgruppe||[]).includes("alle");
     return "<div class='news-card"+(n.gepinnt?" pinned":"")+"'>"
@@ -187,7 +187,7 @@ async function saveNews(){
     if(!teamIds.length){alert("Bitte mindestens ein Team waehlen oder 'Alle Teams' aktivieren.");return;}
     zielgruppe=["spieler","trainer"];
   }
-  const data={titel,inhalt:document.getElementById("nf-inhalt").value||null,typ:document.getElementById("nf-typ").value,zielgruppe,team_ids:forAll?null:teamIds,gepinnt:document.getElementById("nf-pinned").checked,erstellt_am:new Date().toISOString()};
+  const data={titel,inhalt:document.getElementById("nf-inhalt").value||null,typ:document.getElementById("nf-typ").value,zielgruppe,team_ids:forAll?null:teamIds,gepinnt:document.getElementById("nf-pinned").checked,};
   let _nErr;
   if(editId){const r=await db.from("news").update(data).eq("id",editId);_nErr=r.error;}
   else{const r=await db.from("news").insert([{club_id:CLUB_ID,...data}]);_nErr=r.error;}
