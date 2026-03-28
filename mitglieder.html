@@ -99,11 +99,13 @@ async function initDB(){
   CLUB_ID=APP_CONFIG.ACTIVE_CLUB.club_id;
   const[m,t]=await Promise.all([
     db.from("user_profiles").select("*").order("last_name"),
-    db.from('teams').select("*").eq("active",true),
+    db.from("teams").select("*").eq("active",true),
   ]);
+  if(m.error){console.error("user_profiles:",m.error.message);}
+  if(t.error){console.error("teams:",t.error.message);}
   mitglieder=m.data||[];teams=t.data||[];
   render();updateStats();
-  const _ps=document.getElementById("m-page-sub");if(_ps)_ps.textContent="UHC Jonschwil Vipers ·  · Verwaltung aller Mitglieder";
+  const _ps=document.getElementById("m-page-sub");if(_ps)_ps.textContent="UHC Jonschwil Vipers · Verwaltung aller Mitglieder";
   // Freigaben-Badge aus geladenen Mitgliedern berechnen
   const _ausstehend=(m.data||[]).filter(x=>x.login_status==="pending"||x.login_status==="invited").length;
   const _badge=document.getElementById("freigaben-badge");
@@ -111,13 +113,13 @@ async function initDB(){
 }
 
 function updateStats(){
-  const roles={admin:0,trainer:0,spieler:0,eltern:0};
+  const roles={admin:0,trainer:0,player:0,parent:0};
   mitglieder.forEach(m=>{if(roles[m.role]!==undefined)roles[m.role]++;});
   document.getElementById("s-total").textContent=mitglieder.length;
   document.getElementById("s-admin").textContent=roles.admin;
   document.getElementById("s-trainer").textContent=roles.trainer;
-  document.getElementById("s-spieler").textContent=roles.spieler;
-  document.getElementById("s-eltern").textContent=roles.eltern;
+  document.getElementById("s-spieler").textContent=roles.player;
+  document.getElementById("s-eltern").textContent=roles.parent;
 }
 
 function getFiltered(){
@@ -421,9 +423,8 @@ async function saveMitglied(){
     }
     // Einladungs-E-Mail senden wenn E-Mail vorhanden
     if(email){
-      const{error:invErr}=await db.auth.admin?.inviteUserByEmail?.(email,{
-        data:{first_name:vn,last_name:nn,rolle},
-        redirectTo:APP_CONFIG.APP_URL+"/login.html"}).catch(()=>({error:{message:"Admin-API nicht verfügbar"}})) || {error:null};
+      // Einladung: Admin-API nicht verfügbar im Frontend
+      const invErr = null;
       // Hinweis: inviteUserByEmail braucht service_role — stattdessen zeigen wir Anleitung
       await db.from("user_profiles").update({login_status:"invited"}).eq("id",profileId);
       closeModal();

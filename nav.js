@@ -26,8 +26,8 @@ const NAV_ITEMS = [
 const ROLE_HIDDEN = {
   admin:   [],
   trainer: ['finanzen','sponsoring','mitglieder','inventar'],
-  spieler: ['finanzen','sponsoring','mitglieder','inventar','camera','anwesenheit','training'],
-  eltern:  ['finanzen','sponsoring','mitglieder','inventar','camera','anwesenheit','training','scorer','social']};
+  player:  ['finanzen','sponsoring','mitglieder','inventar','camera','anwesenheit','training'],
+  parent:  ['finanzen','sponsoring','mitglieder','inventar','camera','anwesenheit','training','scorer','social']};
 
 // Aktiver Verein — liest aus localStorage, Fallback auf ersten Verein
 function getActiveClub() {

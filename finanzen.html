@@ -309,6 +309,7 @@ function setFilter(typ, el) {
 
 // ── Modal: Buchung erfassen ──
 function openModal(typ) {
+  if(!db){alert("Datenbank noch nicht verbunden. Bitte Seite neu laden.");return;}
   belegUrl = null;
   const kName = activeKonto === "__alle__" ? (konten[0]?.name || "General") : activeKonto;
   document.getElementById("bf-typ").value = typ || "expense";
@@ -322,7 +323,7 @@ function openModal(typ) {
   if (!sel.innerHTML) sel.innerHTML = `<option value="General">Allgemein</option>`;
   // Kategorie-Select
   const kSel = document.getElementById("bf-kategorie");
-  kSel.value = "";
+  if(kSel) kSel.value = "";
   document.getElementById("buchungModal").classList.add("open");
   setTimeout(() => typeof UPLOAD!=="undefined" && UPLOAD.render("beleg-upload", {
     label: "Beleg hochladen (PDF oder Bild)",

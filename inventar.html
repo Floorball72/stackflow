@@ -176,7 +176,7 @@ function renderAusleihen(){
         +"<td style='color:"+(ueber?"var(--red)":"var(--text2)")+";font-size:12px'>"+(a.return_by||"–")+(ueber?" ⚠":"")+"</td>"
         +"<td style='font-family:\"DM Mono\",monospace;font-size:12px'>"+(a.rental_price?("CHF "+parseFloat(a.rental_price).toFixed(2)):"–")+"</td>"
         +"<td>"+(a.paid?`<span class='badge-bezahlt'>Bezahlt</span>`:`<button onclick='setBezahlt("${a.id}",${a.rental_price||0},"${a.inventar?.name||""}")' style='font-size:11px;padding:3px 8px;border-radius:6px;border:1px solid rgba(255,190,71,.3);background:rgba(255,190,71,.08);color:var(--amber);cursor:pointer;font-family:"DM Sans",sans-serif'>Als bezahlt markieren</button>`)+"</td>"
-        +"<td><div class='row-actions'><button class='btn btn-ghost' style='font-size:11px;padding:4px 8px' onclick='zurueckgeben(\""+a.id+"\",\""+a.inventar_id+"\")'>Zurück</button></div></td>"
+        +"<td><div class='row-actions'><button class='btn btn-ghost' style='font-size:11px;padding:4px 8px' onclick='zurueckgeben(\""+a.id+"\",\""+a.inventory_id+"\")'>Zurück</button></div></td>"
         +"</tr>";
     }).join("");
     html+="</tbody></table></div>";
@@ -231,7 +231,7 @@ async function saveAusleihe(){
   if(anzahl>item.quantity_available){alert("Nur "+item.quantity_available+" Stück verfügbar.");return;}
   await db.from("inventory").update({quantity_available:item.quantity_available-anzahl}).eq("id",ausleiheInventarId);
   const {error:_auslErr}=await db.from("inventory_loans").insert([{
-    inventar_id:ausleiheInventarId,
+    inventory_id:ausleiheInventarId,
     player_id:spielerId||null,
     loaned_at:von,
     return_by:bis,
