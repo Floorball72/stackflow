@@ -167,29 +167,10 @@
   // Config wird aus config.js geladen
 const CONFIG = APP_CONFIG;
 
-  // ── Demo-Daten (werden durch echte API-Daten ersetzt sobald Key vorhanden) ──
-  const TEAMS = [
-    { id: 1, name: 'Vipers 1. Liga Damen',  liga: '1. Liga Gruppe 3' },
-    { id: 2, name: 'Vipers 1. Liga Herren', liga: '1. Liga Gruppe 2' },
-    { id: 3, name: 'Junioren U18',           liga: 'Junioren A' },
-    { id: 4, name: 'Junioren U15',           liga: 'Junioren B' },
-    { id: 5, name: 'Junioren U13',           liga: 'Junioren C' },
-  ];
-
-  // Woche 4.–11. April 2025
-  const THIS_WEEKEND = [
-    { team: 'Vipers 1. Liga Damen',  gegner: 'Zug United Damen', datum: 'Sa 5. Apr', zeit: '17:00', heim: true,  resultat: null },
-    { team: 'Vipers 1. Liga Herren', gegner: 'Chur-Araschgen',   datum: 'Sa 5. Apr', zeit: '19:30', heim: true,  resultat: null },
-    { team: 'Junioren U18',          gegner: 'UHV Grabs',        datum: 'So 6. Apr', zeit: '10:00', heim: false, resultat: null },
-    { team: 'Junioren U15',          gegner: 'Bütschwil',        datum: 'So 6. Apr', zeit: '11:30', heim: true,  resultat: null },
-  ];
-
-  const LAST_WEEKEND = [
-    { team: 'Vipers 1. Liga Damen',  gegner: 'Luzern United',    datum: 'Sa 29. Mär', heim: true,  resultat: '8:4' },
-    { team: 'Vipers 1. Liga Herren', gegner: 'Wil-Flawil',       datum: 'Sa 29. Mär', heim: false, resultat: '5:7' },
-    { team: 'Junioren U18',          gegner: 'SV Wil',           datum: 'So 30. Mär', heim: true,  resultat: '6:3' },
-    { team: 'Junioren U15',          gegner: 'Bronschhofen',     datum: 'So 30. Mär', heim: false, resultat: null, fehlt: true },
-  ];
+  // Teams und Spiele werden live aus der Datenbank geladen
+  let TEAMS = [];
+  let THIS_WEEKEND = [];
+  let LAST_WEEKEND = [];
 </script>
 
 <div class="shell">
@@ -202,17 +183,10 @@ const CONFIG = APP_CONFIG;
     <div class="topbar">
       <div>
         <div class="page-title">Social Media Planer</div>
-        <div class="page-sub">UHC Jonschwil Vipers ·  Saison 2024/25 · 1 Post/Woche pro Typ</div>
+        <div class="page-sub">UHC Jonschwil Vipers · Social Media Planer</div>
       </div>
       <div class="topbar-right">
-        <span class="badge-gcal">
-          <svg width="11" height="11" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="11" rx="1" stroke="currentColor" stroke-width="1.3"/><line x1="2" y1="7" x2="14" y2="7" stroke="currentColor" stroke-width="1.3"/></svg>
-          Google Cal. verbunden
-        </span>
-        <span class="badge-api-wait">
-          <svg width="11" height="11" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.3"/><path d="M8 5v3l2 2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
-          Swiss UH API ausstehend
-        </span>
+
         <button class="btn btn-ghost" style="font-size:12px" onclick="document.getElementById('manualPostModal').classList.add('open')">+ Manueller Post</button>
       </div>
     </div>
@@ -238,8 +212,7 @@ const CONFIG = APP_CONFIG;
         </div>
         <div class="stat stat-warn">
           <div class="stat-label">Fehlende Resultate</div>
-          <div class="stat-val">1</div>
-          <div class="stat-sub">Junioren U15 ausstehend</div>
+          <div class="stat-val" id="missing-results">–</div><div class="stat-sub">Fehlende Resultate</div>
         </div>
       </div>
 
@@ -282,9 +255,7 @@ const CONFIG = APP_CONFIG;
             <div>
               <div class="week-tag tag-spiel">Spieltag</div>
               <div class="week-games">
-                <div class="week-game">Vipers 1. Liga Damen vs. Zug United <span>17:00</span></div>
-                <div class="week-game">Vipers 1. Liga Herren vs. Chur-Araschgen <span>19:30</span></div>
-              </div>
+                </div>
             </div>
             <div></div>
           </div>
@@ -298,9 +269,7 @@ const CONFIG = APP_CONFIG;
             <div>
               <div class="week-tag tag-spiel">Spieltag</div>
               <div class="week-games">
-                <div class="week-game">Junioren U18 @ UHV Grabs <span>10:00</span></div>
-                <div class="week-game">Junioren U15 vs. Bütschwil <span>11:30</span></div>
-              </div>
+                </div>
             </div>
             <div></div>
           </div>
@@ -361,7 +330,6 @@ const CONFIG = APP_CONFIG;
               </div>
               <div class="post-teams" id="post-resultat-teams"></div>
               <div style="margin:8px 0;">
-                <span style="font-size:11px;color:var(--red);font-weight:500">⚠ Junioren U15: Resultat fehlt</span>
               </div>
               <div class="post-footer">
                 <span class="gcal-chip">
@@ -393,7 +361,6 @@ const CONFIG = APP_CONFIG;
     <div class="modal-title">Resultat nachtragen</div>
     <div class="form-grid">
       <div style="background:var(--bg3);border-radius:8px;padding:12px;font-size:13px;color:var(--text2)">
-        Junioren U15 vs. Bütschwil · So. 6. April
       </div>
       <div class="form-row-2">
         <div>

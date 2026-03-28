@@ -454,7 +454,7 @@ function showInviteInfo(vn,nn,email,rolle){
   modal.classList.add("open");
 }
 async function deleteMitglied(id){if(!confirm("Mitglied wirklich entfernen?"))return;await db.from("user_profiles").delete().eq("id",id);mitglieder=mitglieder.filter(m=>m.id!==id);render();updateStats();}
-function printAusweis(name){alert("Ausweis für "+name+" wird gedruckt (PDF-Export folgt in nächster Version).");}
+function printAusweis(name){alert("Druckfunktion folgt in einer späteren Version.");}
 document.addEventListener("click",e=>{if(e.target.classList.contains("overlay"))e.target.classList.remove("open");});
 
 function loginStatusBadge(m){

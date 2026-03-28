@@ -85,7 +85,7 @@ create table teams (
   club_id         text references clubs(club_id) on delete cascade,
   name            text not null,
   liga            text,
-  saison          text default '2024/25',
+  saison text,
   trainingszeiten text,
   trainingsort    text,
   aktiv           boolean default true,
@@ -188,7 +188,7 @@ create table scorer (
   tore         integer default 0,
   assists      integer default 0,
   strafminuten integer default 0,
-  saison       text default '2024/25',
+  saison text,
   created_at   timestamptz default now(),
   unique nulls not distinct (player_id, game_id)
 );
@@ -384,15 +384,11 @@ create policy "p_players_w"   on players               for all using (true) with
 create policy "p_clubs_w"     on clubs                 for all using (true) with check (true);
 create policy "p_news_w"      on news                  for all using (true) with check (true);
 
--- ── SCHRITT 5: Vereinsdaten (Pflicht) ──────────────────────────
-insert into clubs (club_id, name, short_name, swiss_uh_id, primary_color) values
-  ('uhc-jonschwil', 'UHC Jonschwil Vipers', 'Vipers', 692, '#d4f04a');
-
--- Teams werden über die Teams-Seite erstellt
-
--- News werden über die News-Seite erstellt
-
--- ── Fertig! ───────────────────────────────────────────────────
+-- ── SCHRITT 5: Vereinsdaten ────────────────────────────────
+-- Verein wird automatisch angelegt:
+insert into clubs (club_id, name, short_name, primary_color) values
+  ('uhc-jonschwil', 'UHC Jonschwil Vipers', 'Vipers', '#d4f04a')
+on conflict (club_id) do nothing;
 
 -- ── SCHRITT 6: Storage Bucket ────────────────────────────────
 -- Bucket "stackflow" für alle Uploads (Belege, Videos, Logos, Fotos)

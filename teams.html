@@ -142,7 +142,7 @@ function renderGrid(){
         <div class="team-icon" style="background:${color}22;color:${color}">${short}</div>
         <div>
           <div class="team-name">${t.name.replace(/UHC Jonschwil /g,"")}</div>
-          <div class="team-liga">${t.liga||"–"} · Saison ${t.saison||"2024/25"}</div>
+          <div class="team-liga">${t.liga||"–"} · Saison ${t.saison||""}</div>
         </div>
       </div>
       <div class="team-stats-row">
@@ -206,7 +206,7 @@ function renderDetail(teamId){
       <div class="detail-icon" style="background:${color}22;color:${color}">${short}</div>
       <div style="flex:1">
         <div class="detail-name">${t.name}</div>
-        <div class="detail-meta">${t.liga||"–"} · ${t.saison||"2024/25"}${t.trainingszeiten?" · "+t.trainingszeiten:""}${t.trainingsort?" · "+t.trainingsort:""}</div>
+        <div class="detail-meta">${t.liga||"–"} · ${t.saison||""}${t.trainingszeiten?" · "+t.trainingszeiten:""}${t.trainingsort?" · "+t.trainingsort:""}</div>
       </div>
       <div style="display:flex;gap:8px">
         <button class="btn btn-ghost" onclick="openTeamModal('${t.id}')">Bearbeiten</button>
@@ -265,14 +265,14 @@ function openTeamModal(id){
     const t=teams.find(x=>x.id===id);if(!t)return;
     document.getElementById("tf-name").value=t.name||"";
     document.getElementById("tf-liga").value=t.liga||"";
-    document.getElementById("tf-saison").value=t.saison||"2024/25";
+    document.getElementById("tf-saison").value=t.saison||"";
     document.getElementById("tf-trainingszeiten").value=t.trainingszeiten||"";
     document.getElementById("tf-trainingsort").value=t.trainingsort||"";
     document.getElementById("tf-aktiv").value=String(t.aktiv!==false);
     document.getElementById("teamModal-title").textContent="Team bearbeiten";
   } else {
     ["tf-name","tf-liga","tf-trainingszeiten","tf-trainingsort"].forEach(id=>document.getElementById(id).value="");
-    document.getElementById("tf-saison").value="2024/25";
+    document.getElementById("tf-saison").value="";
     document.getElementById("tf-aktiv").value="true";
     document.getElementById("teamModal-title").textContent="Neues Team erstellen";
   }
@@ -285,7 +285,7 @@ async function saveTeam(){
   const data={
     club_id:CLUB_ID, name,
     liga:document.getElementById("tf-liga").value||null,
-    saison:document.getElementById("tf-saison").value||"2024/25",
+    saison:document.getElementById("tf-saison").value||"",
     trainingszeiten:document.getElementById("tf-trainingszeiten").value||null,
     trainingsort:document.getElementById("tf-trainingsort").value||null,
     aktiv:document.getElementById("tf-aktiv").value==="true",
@@ -384,11 +384,11 @@ initDB().catch(e=>{console.error(e);const el=document.getElementById("main-conte
       <div><label class="form-label">Teamname</label><input class="form-input" type="text" id="tf-name" placeholder="z.B. UHC Jonschwil Vipers 1. Liga"></div>
       <div class="form-row-2">
         <div><label class="form-label">Liga</label><input class="form-input" type="text" id="tf-liga" placeholder="z.B. 1. Liga Gruppe 3"></div>
-        <div><label class="form-label">Saison</label><input class="form-input" type="text" id="tf-saison" placeholder="2024/25"></div>
+        <div><label class="form-label">Saison</label><input class="form-input" type="text" id="tf-saison" placeholder="Saison (z.B. 2024/25)"></div>
       </div>
       <div class="form-row-2">
-        <div><label class="form-label">Trainingszeiten</label><input class="form-input" type="text" id="tf-trainingszeiten" placeholder="Di+Do 20:00"></div>
-        <div><label class="form-label">Trainingsort</label><input class="form-input" type="text" id="tf-trainingsort" placeholder="Sporthalle Jonschwil"></div>
+        <div><label class="form-label">Trainingszeiten</label><input class="form-input" type="text" id="tf-trainingszeiten" placeholder=""></div>
+        <div><label class="form-label">Trainingsort</label><input class="form-input" type="text" id="tf-trainingsort" placeholder="z.B. Sporthalle Jonschwil"></div>
       </div>
       <div><label class="form-label">Status</label>
         <select class="form-input" id="tf-aktiv">

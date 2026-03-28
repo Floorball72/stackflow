@@ -57,7 +57,7 @@ create table teams (
   club_id         text references clubs(club_id) on delete cascade,
   name            text not null,
   liga            text,
-  saison          text default '2024/25',
+  saison text,
   trainingszeiten text,
   trainingsort    text,
   aktiv           boolean default true,
@@ -160,7 +160,7 @@ create table scorer (
   tore         integer default 0,
   assists      integer default 0,
   strafminuten integer default 0,
-  saison       text default '2024/25',
+  saison text,
   created_at   timestamptz default now(),
   unique(player_id, game_id)
 );
@@ -356,13 +356,8 @@ create policy "auth_news_w"    on news                  for all using (auth.role
 insert into clubs (club_id, name, short_name, swiss_uh_id, primary_color) values
   ('uhc-jonschwil', 'UHC Jonschwil Vipers', 'Vipers', 692, '#d4f04a');
 
-insert into teams (club_id, name, liga, trainingszeiten, trainingsort) values
-  ('uhc-jonschwil', 'UHC Jonschwil Vipers 1. Liga', '1. Liga Gr.3', 'Di+Do 20:00', 'Sporthalle Jonschwil'),
-  ('uhc-jonschwil', 'UHC Jonschwil Vipers 2. Liga', '2. Liga',      'Mo+Mi 19:30', 'Sporthalle Jonschwil'),
-  ('uhc-jonschwil', 'UHC Jonschwil Junioren U18',   'Junioren A',   'Sa 10:00',    'Sporthalle Jonschwil'),
-  ('uhc-jonschwil', 'UHC Jonschwil Junioren U15',   'Junioren B',   'Sa 08:30',    'Sporthalle Jonschwil');
+-- Teams werden über die App erstellt
 
-insert into news (club_id, titel, inhalt, typ, gepinnt) values
-  ('uhc-jonschwil', 'Willkommen bei Stackflow!', 'Vereinsdaten zentral verwalten.', 'info', true);
+-- News werden über die App erstellt
 
 select 'Setup erfolgreich — 19 Tabellen erstellt!' as status;

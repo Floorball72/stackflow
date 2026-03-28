@@ -209,7 +209,7 @@ async function saveScorer(){
     tore:parseInt(document.getElementById('sf-tore').value)||0,
     assists:parseInt(document.getElementById('sf-assists').value)||0,
     strafminuten:parseInt(document.getElementById('sf-strafmin').value)||0,
-    saison:'2024/25'
+    saison: new Date().getFullYear()+'/'+(new Date().getFullYear()+1).toString().slice(-2)
   };
   // Upsert: falls Eintrag für diesen Spieler+Spiel existiert, updaten
   await db.from('scorer').upsert([{club_id:CLUB_ID,...data}],{onConflict:'player_id,game_id'});

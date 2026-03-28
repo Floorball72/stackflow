@@ -1,27 +1,52 @@
 -- ============================================================
--- STORAGE SETUP für Stackflow
--- Im Supabase Dashboard ausführen: Storage → SQL Editor
--- ODER direkt im SQL Editor wenn storage Extension aktiv ist
+-- STACKFLOW — Storage Setup
+-- ============================================================
+-- Bucket "stackflow" für alle Uploads erstellen
+-- (Bilder, PDFs, Videos, Logos)
 -- ============================================================
 
--- Bucket erstellen (falls nicht existiert)
-insert into storage.buckets (id, name, public, file_size_limit)
-values ('stackflow', 'stackflow', true, 524288000)
-on conflict (id) do update set public = true, file_size_limit = 524288000;
+-- Bucket erstellen (falls nicht bereits vorhanden)
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values (
+  'stackflow',
+  'stackflow',
+  true,
+  524288000,
+  array[
+    'image/jpeg','image/jpg','image/png','image/webp','image/svg+xml',
+    'application/pdf',
+    'video/mp4','video/quicktime','video/webm','video/x-msvideo'
+  ]
+)
+on conflict (id) do update set
+  public = true,
+  file_size_limit = 524288000;
 
--- Policy: Alle dürfen lesen (public bucket)
-create policy "storage_public_read"
-on storage.objects for select
-using (bucket_id = 'stackflow');
+-- ============================================================
+-- Storage Policies werden im Supabase Dashboard erstellt:
+--
+-- Storage → stackflow Bucket → Policies → New Policy
+--
+-- Policy 1 — Lesen (SELECT):
+--   Name: "Public read"
+--   Allowed operations: SELECT
+--   Target roles: (leer lassen = alle)
+--   Policy: true
+--
+-- Policy 2 — Hochladen (INSERT):
+--   Name: "Public upload"  
+--   Allowed operations: INSERT
+--   Target roles: (leer lassen = alle)
+--   Policy: true
+--
+-- Policy 3 — Löschen (DELETE):
+--   Name: "Public delete"
+--   Allowed operations: DELETE
+--   Target roles: (leer lassen = alle)
+--   Policy: true
+--
+-- ODER: Einfach "Give users access to only their own top level folder"
+--       auswählen und dann auf "All" setzen.
+-- ============================================================
 
--- Policy: Alle dürfen hochladen  
-create policy "storage_public_insert"
-on storage.objects for insert
-with check (bucket_id = 'stackflow');
-
--- Policy: Alle dürfen löschen
-create policy "storage_public_delete"
-on storage.objects for delete
-using (bucket_id = 'stackflow');
-
-select 'Storage Bucket "stackflow" konfiguriert' as status;
+select 'Bucket "stackflow" erstellt' as status;

@@ -75,7 +75,7 @@ async function initDB(){
   const[t,g,s,p]=await Promise.all([
     db.from('teams').select('*').eq('id',teamId).single(),
     db.from('games').select('*').eq('team_id',teamId).order('datum'),
-    db.from('scorer').select('*,players(vorname,nachname,nummer)').eq('saison','2024/25'),
+    db.from('scorer').select('*,players(vorname,nachname,nummer)').eq('saison',''),
     db.from('players').select('*').eq('team_id',teamId).eq('aktiv',true).order('nummer'),
   ]);
   team=t.data;games=g.data||[];scorer=s.data||[];players=p.data||[];
