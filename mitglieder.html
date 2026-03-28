@@ -89,9 +89,9 @@ tr:hover .row-actions{opacity:1}
 const CONFIG = APP_CONFIG;
 let db=null,CLUB_ID="uhc-jonschwil",mitglieder=[],teams=[],filterRolle="all",searchQ="",activeTab="liste",editId=null;
 
-const ROLLE_COLORS={admin:"role-admin",trainer:"role-trainer",spieler:"role-spieler",eltern:"role-eltern"};
-const ROLLE_LABELS={admin:"Admin",trainer:"Trainer",spieler:"Spieler",eltern:"Eltern"};
-const AVATAR_COLORS={admin:"rgba(212,240,74,.2)",trainer:"rgba(155,143,255,.2)",spieler:"rgba(91,191,255,.15)",eltern:"rgba(77,214,140,.12)"};
+const ROLLE_COLORS={admin:"role-admin",trainer:"role-trainer",player:"role-spieler",parent:"role-eltern"};
+const ROLLE_LABELS={admin:"Admin",trainer:"Trainer",player:"Spieler",parent:"Eltern"};
+const AVATAR_COLORS={admin:"rgba(212,240,74,.2)",trainer:"rgba(155,143,255,.2)",player:"rgba(91,191,255,.15)",parent:"rgba(77,214,140,.12)"};
 
 async function initDB(){
   const mod=await import("https://esm.sh/@supabase/supabase-js@2");
@@ -353,7 +353,7 @@ function renderTeamCheckboxes(selected){
 function toggleSpielerFelder(rolle){
   try{
     const el=document.getElementById("spieler-felder");
-    if(el) el.style.display=rolle==="player"?"block":"none";
+    if(el) el.style.display=role==="player"?"block":"none";
   }catch(e){console.warn("toggleSpielerFelder:",e);}
 }
 function setClubAnzeige(){
@@ -372,7 +372,7 @@ async function saveMitglied(){
   const nn=document.getElementById("mf-nachname").value.trim();
   const email=document.getElementById("mf-email").value.trim();
   if(!vn||!nn){alert("Bitte Vor- und Nachname eingeben.");return;}
-  const rolle=document.getElementById("mf-rolle").value;
+  const role=document.getElementById("mf-rolle").value;
   const teamIds=Array.from(document.querySelectorAll("#mf-teams-grid input:checked")).map(cb=>cb.value);
   const profileData={
     first_name:vn, last_name:nn,
@@ -380,12 +380,12 @@ async function saveMitglied(){
     phone:document.getElementById("mf-telefon").value||null,
     address:document.getElementById("mf-adresse").value||null,
     birth_date:document.getElementById("mf-geburtsdatum").value||null,
-    rolle,team_ids:teamIds.length?teamIds:null,
+    role,team_ids:teamIds.length?teamIds:null,
     member_since:document.getElementById("mf-seit").value||null,
     active:document.getElementById("mf-aktiv").value==="true",
     login_status:"pending",  // pending | invited | active
   };
-  const trikotData=rolle==="player"?{
+  const trikotData=role==="player"?{
     shirt:document.getElementById("mf-shirt").value||null,
     hose:document.getElementById("mf-hose").value||null,
     stuelpengr:document.getElementById("mf-stuelpengr").value||null,
@@ -427,7 +427,7 @@ async function saveMitglied(){
       // Hinweis: inviteUserByEmail braucht service_role — stattdessen zeigen wir Anleitung
       await db.from("user_profiles").update({login_status:"invited"}).eq("id",profileId);
       closeModal();
-      showInviteInfo(vn,nn,email,rolle);
+      showInviteInfo(vn,nn,email,role);
       const{data:m}=await db.from("user_profiles").select("*").order("last_name");
       mitglieder=m||[];render();updateStats();
       return;
@@ -439,12 +439,12 @@ async function saveMitglied(){
 }
 
 // Zeigt dem Admin einen kopierbaren Einladungslink / Anleitung
-function showInviteInfo(vn,nn,email,rolle){
+function showInviteInfo(vn,nn,email,role){
   const inviteLink=APP_CONFIG.APP_URL+"/login.html";
   const modal=document.getElementById("inviteInfoModal");
   document.getElementById("ii-name").textContent=vn+" "+nn;
   document.getElementById("ii-email").textContent=email;
-  document.getElementById("ii-rolle").textContent={admin:"Admin",trainer:"Trainer",spieler:"Spieler",eltern:"Eltern"}[rolle]||rolle;
+  document.getElementById("ii-rolle").textContent={admin:"Admin",trainer:"Trainer",player:"Spieler",parent:"Eltern"}[role]||role;
   document.getElementById("ii-link").value=inviteLink;
   modal.classList.add("open");
 }

@@ -312,7 +312,7 @@ function openEditGame(id) {
   document.getElementById('gf-anstoss').value = g.kickoff?.slice(0,5) || '17:00';
   document.getElementById('gf-heim').value = String(g.home_game);
   const _spkat2=document.getElementById('gf-spielkategorie');if(_spkat2)_spkat2.value=g.game_category||'season';
-  document.getElementById('gf-ort').value = g.ort || '';
+  document.getElementById('gf-ort').value = g.location || '';
   document.getElementById('result-section').style.display = 'grid';
   document.getElementById('gf-heim-score').value = g.score_home ?? '';
   document.getElementById('gf-gast-score').value = g.score_away ?? '';
@@ -347,7 +347,7 @@ async function saveGame() {
     kickoff: document.getElementById('gf-anstoss').value,
     home_game: document.getElementById('gf-heim').value === 'true',
     game_category: (document.getElementById('gf-spielkategorie')||{value:'season'}).value,
-    ort: document.getElementById('gf-ort').value || null};
+    location: document.getElementById('gf-ort').value || null};
   const rh = document.getElementById('gf-heim-score').value;
   const rg = document.getElementById('gf-gast-score').value;
   if (rh !== '' && rg !== '') { data.score_home = parseInt(rh); data.score_away = parseInt(rg); }

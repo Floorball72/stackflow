@@ -130,8 +130,8 @@ async function initDB() {
 async function loadAll() {
   const { data } = await db.from("finance").select("*").order("date", { ascending: false });
   buchungen = data || [];
-  // Konten aus buchungen ableiten — "Allgemein" immer vorhanden
-  const namen = [...new Set(["Allgemein", ...buchungen.map(b => b.account || "Allgemein")])].sort((a,b)=>a==="Allgemein"?-1:b==="Allgemein"?1:a.localeCompare(b));
+  // Konten aus buchungen ableiten — "General" immer vorhanden
+  const namen = [...new Set(["General", ...buchungen.map(b => b.account || "General")])].sort((a,b)=>a==="General"?-1:b==="General"?1:a.localeCompare(b));
   konten = namen.map((n, i) => ({
     name: n,
     color: KONTO_COLORS[i % KONTO_COLORS.length]}));
@@ -145,7 +145,7 @@ function CHF(n) {
 
 function getBuchungen(konto, typ) {
   let b = buchungen;
-  if (konto && konto !== "__alle__") b = b.filter(x => (x.account || "Allgemein") === konto);
+  if (konto && konto !== "__alle__") b = b.filter(x => (x.account || "General") === konto);
   if (typ && typ !== "all") b = b.filter(x => x.type === typ);
   return b;
 }
@@ -196,12 +196,12 @@ function setKonto(name) {
 }
 
 async function deleteKonto(name) {
-  if (name === "Allgemein") { alert("Das Allgemein-Konto kann nicht gelöscht werden."); return; }
-  const buchungenImKonto = buchungen.filter(b => (b.account || "Allgemein") === name);
+  if (name === "General") { alert("Das Allgemein-Konto kann nicht gelöscht werden."); return; }
+  const buchungenImKonto = buchungen.filter(b => (b.account || "General") === name);
   if (buchungenImKonto.length > 0) {
-    if (!confirm("Das Konto "" + name + "" hat " + buchungenImKonto.length + " Buchungen. Diese werden auf 'Allgemein' verschoben. Fortfahren?")) return;
+    if (!confirm("Das Konto "" + name + "" hat " + buchungenImKonto.length + " Buchungen. Diese werden auf 'General' verschoben. Fortfahren?")) return;
     // Buchungen auf Allgemein verschieben
-    await Promise.all(buchungenImKonto.map(b => db.from("finance").update({ account: "Allgemein" }).eq("id", b.id)));
+    await Promise.all(buchungenImKonto.map(b => db.from("finance").update({ account: "General" }).eq("id", b.id)));
   } else {
     if (!confirm('Konto "' + name + '" löschen?')) return;
   }
@@ -238,7 +238,7 @@ function render() {
     tbody.innerHTML = filtered.map(b => {
       const d = new Date(b.date + "T12:00:00").toLocaleDateString("de-CH", { day: "numeric", month: "short", year: "2-digit" });
       const plus = b.type === "income";
-      const konto = b.account || "Allgemein";
+      const konto = b.account || "General";
       const kObj2 = konten.find(k => k.name === konto);
       return `<tr>
         <td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text3)">${d}</td>
@@ -310,16 +310,16 @@ function setFilter(typ, el) {
 // ── Modal: Buchung erfassen ──
 function openModal(typ) {
   belegUrl = null;
-  const kName = activeKonto === "__alle__" ? (konten[0]?.name || "Allgemein") : activeKonto;
+  const kName = activeKonto === "__alle__" ? (konten[0]?.name || "General") : activeKonto;
   document.getElementById("bf-typ").value = typ || "expense";
   document.getElementById("bf-betrag").value = "";
   document.getElementById("bf-beschreibung").value = "";
   document.getElementById("bf-datum").value = new Date().toISOString().split("T")[0];
   // Konto-Select befüllen (immer mind. Allgemein)
   const sel = document.getElementById("bf-konto");
-  const allKontenNames = konten.length ? konten : [{ name: "Allgemein" }];
+  const allKontenNames = konten.length ? konten : [{ name: "General" }];
   sel.innerHTML = allKontenNames.map(k => `<option value="${k.name}" ${k.name === kName ? "selected" : ""}>${k.name}</option>`).join("");
-  if (!sel.innerHTML) sel.innerHTML = `<option value="Allgemein">Allgemein</option>`;
+  if (!sel.innerHTML) sel.innerHTML = `<option value="General">Allgemein</option>`;
   // Kategorie-Select
   const kSel = document.getElementById("bf-kategorie");
   kSel.value = "";
@@ -341,7 +341,7 @@ async function saveBuchung() {
     betrag,
     description: document.getElementById("bf-beschreibung").value || null,
     category: document.getElementById("bf-kategorie").value || null,
-    account: document.getElementById("bf-konto").value || "Allgemein",
+    account: document.getElementById("bf-konto").value || "General",
     datum,
     receipt_url: belegUrl || null};
   const { error } = await db.from("finance").insert([data]);

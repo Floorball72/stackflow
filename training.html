@@ -113,7 +113,7 @@ async function initDB(){
 async function loadAll(){
   const[tr,vi,te,ga]=await Promise.all([
     db.from("training_units").select("*,teams(name)").order("created_at",{ascending:false}),
-    db.from("video_analyses").select("*,games(datum,gegner)").order("created_at",{ascending:false}),
+    db.from("video_analyses").select("*,games(date,opponent)").order("created_at",{ascending:false}),
     db.from("teams").select("*").eq("active",true).order("name"),
     db.from("games").select("*").order("date",{ascending:false}).limit(40),
   ]);
@@ -217,7 +217,7 @@ function renderVideo(){
       +"<div class='card-title'>"+v.title+"</div>"
       +"<div class='card-meta'>"
       +(gameLabel?"<span>"+gameLabel+"</span>":"")
-      +(v.erstellt_von?"<span>"+v.erstellt_von+"</span>":"")
+      +(v.erstellt_von?"<span>"+v.created_by+"</span>":"")
       +"</div>"
       +(v.notes?"<div class='card-desc'>"+v.notes+"</div>":"")
       +(tags.length?"<div class='card-tags'>"+tags.map(t=>"<span class='tag'>"+t+"</span>").join("")+"</div>":"")
@@ -279,10 +279,10 @@ function openTrainingModal(id){
 }
 
 async function saveTraining(){
-  const titel=document.getElementById("tf-titel").value.trim();
-  if(!titel){alert("Bitte Titel eingeben.");return;}
+  const title=document.getElementById("tf-titel").value.trim();
+  if(!title){alert("Bitte Titel eingeben.");return;}
   const videoUrl=document.getElementById("tf-video").value||null;
-  const data={titel,
+  const data={title,
     team_id:document.getElementById("tf-team").value||null,
     category:document.getElementById("tf-kat").value||null,
     description:document.getElementById("tf-beschreibung").value||null,
@@ -310,7 +310,7 @@ function openVideoModal(id){
     document.getElementById("vf-titel").value=v.title||"";
     document.getElementById("vf-game").value=v.game_id||"";
     document.getElementById("vf-kat").value=v.category||"opponent";
-    document.getElementById("vf-trainer").value=v.erstellt_von||"";
+    document.getElementById("vf-trainer").value=v.created_by||"";
     document.getElementById("vf-notizen").value=v.notes||"";
     document.getElementById("vf-tags").value=(v.tags||[]).join(", ");
     document.getElementById("vf-url").value=v.video_url||"";
@@ -325,17 +325,17 @@ function openVideoModal(id){
 }
 
 async function saveVideo(){
-  const titel=document.getElementById("vf-titel").value.trim();
-  if(!titel){alert("Bitte Titel eingeben.");return;}
+  const title=document.getElementById("vf-titel").value.trim();
+  if(!title){alert("Bitte Titel eingeben.");return;}
   const tagsStr=document.getElementById("vf-tags").value;
   const videoUrl=document.getElementById("vf-url").value||null;
-  const data={titel,
+  const data={title,
     game_id:document.getElementById("vf-game").value||null,
     category:document.getElementById("vf-kat").value||null,
     video_url:videoUrl,
     notes:document.getElementById("vf-notizen").value||null,
     tags:tagsStr?tagsStr.split(",").map(s=>s.trim()).filter(Boolean):null,
-    erstellt_von:document.getElementById("vf-trainer").value||null};
+    created_by:document.getElementById("vf-trainer").value||null};
   if(editVideoId){await db.from("video_analyses").update(data).eq("id",editVideoId);}
   else{await db.from("video_analyses").insert([{...data}]);}
   document.getElementById("videoModal").classList.remove("open");
